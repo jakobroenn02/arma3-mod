@@ -16,7 +16,7 @@ class EditorData
 	};
 	class Camera
 	{
-		pos[]={3500,50,13700};
+		pos[]={16800,50,12600};
 		dir[]={0,-0.7,0.7};
 		up[]={0,0.7,0.7};
 		aside[]={1,0,0};
@@ -79,7 +79,7 @@ class Mission
 					dataType="Object";
 					class PositionInfo
 					{
-						position[]={3500,0,13700};
+						position[]={16800,0,12600};
 						angles[]={0,0,0};
 					};
 					side="West";
