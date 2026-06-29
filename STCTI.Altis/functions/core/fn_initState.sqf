@@ -8,3 +8,6 @@ STCTI_state = createHashMapFromArray [
     ]],
     ["sectors", createHashMap]   // sectorId -> sector record
 ];
+
+// Active abstract-combat engagements: sectorId -> engagement record (resolver §2).
+STCTI_engagements = createHashMap;

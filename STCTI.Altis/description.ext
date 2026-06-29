@@ -34,6 +34,7 @@ class CfgFunctions {
             class spawnSectorGarrison {};
             class updateSectorCapture {};
             class initSectors {};
+            class isSectorObserved {};
         };
         class economy { file = "functions\economy"; class economyTick {}; };
         class garage {
@@ -43,7 +44,36 @@ class CfgFunctions {
         };
         class ai { file = "functions\ai"; class launchAttack {}; class directorTick {}; };
         class ui { file = "functions\ui"; class initHUD {}; class updateHUD {}; class showZoneSelect {}; };
+        class resolver {
+            file = "functions\resolver";
+            class unitAttr {};
+            class forceStrength {};
+            class forceMetrics {};
+            class forceOutput {};
+            class applyCasualties {};
+            class rosterToClasses {};
+            class beginEngagement {};
+            class checkBreak {};
+            class resolveTick {};
+            class startResolver {};
+            class resolverSelfTest {};
+        };
     };
+};
+
+// CfgSTCTIUnitTypes — abstract combat-resolution attributes per unit role.
+// cp doubles as the spawn back-reference (how many to instantiate on handoff).
+// See abstract-combat-resolution-spec.md §2.
+class CfgSTCTIUnitTypes {
+    class rifleman   { cp = 1.0;  category = "infantry"; armorClass = "soft";    antiArmor = 0.10; antiAir = 0.0; };
+    class at_team    { cp = 1.5;  category = "infantry"; armorClass = "soft";    antiArmor = 1.0;  antiAir = 0.0; };
+    class aa_team    { cp = 1.3;  category = "infantry"; armorClass = "soft";    antiArmor = 0.0;  antiAir = 1.0; };
+    class mrap       { cp = 3.0;  category = "armor";    armorClass = "light";   antiArmor = 0.3;  antiAir = 0.0; };
+    class ifv        { cp = 6.0;  category = "armor";    armorClass = "armored"; antiArmor = 0.6;  antiAir = 0.0; };
+    class mbt        { cp = 9.0;  category = "armor";    armorClass = "heavy";   antiArmor = 1.0;  antiAir = 0.0; };
+    class uav_armed  { cp = 5.0;  category = "air";      armorClass = "air";     antiArmor = 0.7;  antiAir = 0.0; };
+    class heli_atk   { cp = 10.0; category = "air";      armorClass = "air";     antiArmor = 1.0;  antiAir = 0.0; };
+    class jet_cas    { cp = 12.0; category = "air";      armorClass = "air";     antiArmor = 1.0;  antiAir = 0.0; };
 };
 
 // Slice: permissive remote exec (mode 2 = all allowed). Tighten to a whitelist later.

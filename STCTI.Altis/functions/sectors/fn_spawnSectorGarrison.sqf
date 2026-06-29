@@ -25,3 +25,7 @@ _grp setCombatMode "YELLOW";
 
 _rec set ["garrison", units _grp];
 _rec set ["spawned", true];
+
+// Abstract composition of this garrison, for the resolver if the sector is ever fought over
+// while unobserved (e.g. a player-staged attack). Mirrors the live count. See resolver §2.
+_rec set ["defenderForce", createHashMapFromArray [["rifleman", _count]]];

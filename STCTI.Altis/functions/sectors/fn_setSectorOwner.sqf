@@ -9,6 +9,14 @@ if ((_rec get "owner") isEqualTo _owner) exitWith {};
 
 _rec set ["owner", _owner];
 _rec set ["captureProgress", if (_owner isEqualTo "player") then {1} else {0}];
+
+// On player capture, seed a baseline virtual garrison so an unobserved enemy attack has
+// something to fight (rather than instantly flipping). Tune via STCTI_PLAYER_GARRISON.
+// (When an abstract fight resolves, checkBreak overwrites this with the survivors.)
+if (_owner isEqualTo "player") then {
+    _rec set ["defenderForce", createHashMapFromArray [["rifleman", STCTI_PLAYER_GARRISON]]];
+};
+
 [_id] call STCTI_fnc_updateSectorMarker;
 
 // globalEvent so clients (economy HUD feedback, notifications) react everywhere.

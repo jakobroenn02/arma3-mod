@@ -23,6 +23,21 @@ call STCTI_fnc_initHUD;
     };
 }] call CBA_fnc_addEventHandler;
 
+// Abstract engagement outcome — report a staged/unobserved fight's result (resolver §6),
+// phrased from the player's side.
+[STCTI_EV_ENGAGEMENT_RESOLVED, {
+    params ["_id", "_routed", "_att", "_def", "_startA", "_startD", "_attOwner", "_defOwner"];
+    private _msg = switch (true) do {
+        // Defender broke -> attacker took the sector.
+        case (_routed isEqualTo "defender" && {_attOwner isEqualTo "player"}): { format ["%1 captured — your assault succeeded.", _id] };
+        case (_routed isEqualTo "defender"):                                   { format ["Lost %1 — the enemy overran the garrison.", _id] };
+        // Attacker broke -> defender held.
+        case (_routed isEqualTo "attacker" && {_defOwner isEqualTo "player"}): { format ["Held %1 — enemy assault repelled.", _id] };
+        default                                                               { format ["Assault on %1 failed.", _id] };
+    };
+    [_msg] call BIS_fnc_showNotification;
+}] call CBA_fnc_addEventHandler;
+
 // Garage actions (E3): wait for the server-spawned garage, then wire the menu.
 [{ !isNil "STCTI_garage" && {!isNull STCTI_garage} }, {
     STCTI_garage addAction ["Buy Hunter (500)",   { ["B_MRAP_01_F", 500] call STCTI_fnc_requestPurchase; }];
