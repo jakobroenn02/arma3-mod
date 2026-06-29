@@ -35,11 +35,10 @@ STCTI_ATTACK_WARNING   = 60;    // warning lead time
 // Debug Console), run:  copyToClipboard str (getPosATL player)  — then paste here.
 // Z is taken from terrain at runtime (setPosATL), so heights are 0 here.
 // arsenal/garage are offset a few metres either side of the spawn — adjust to taste.
+// Tanoa: the other airfields/bases are enemy sectors (see fn_initSectors).
 STCTI_START_BASES = [
-    ["Central Airport (military)", [15250,17241,0],    0, [15242,17241,0], [15258,17241,0]],
-    ["South-East Airport",         [20556.3,7277.93,0],0, [20548.3,7277.93,0], [20564.3,7277.93,0]],
-    ["North-East Military Base",   [23536.7,21088.1,0],0, [23528.7,21088.1,0], [23544.7,21088.1,0]],
-    ["North-West Airport",         [9156.62,21612.7,0],0, [9148.62,21612.7,0], [9164.62,21612.7,0]]
+    ["Central Airport",          [7068.01,7411.45,0], 0, [7060.01,7411.45,0], [7076.01,7411.45,0]],
+    ["Western Military Airbase", [2367.82,13316.8,0], 0, [2359.82,13316.8,0], [2375.82,13316.8,0]]
 ];
 
 // Set at campaign start from the chosen base (see fn_serverPlaceBase). Declared here
