@@ -58,24 +58,13 @@ STCTI_TYPE_CLASS = createHashMapFromArray [
     ["rifleman", "O_Soldier_F"]
 ];
 
-// --- Starting bases -------------------------------------------------------------
-// EDIT THIS TABLE. Each row is one selectable starting base:
-//   [ "label", spawnPos, spawnDir, arsenalPos, garagePos ]
-//     spawnPos    — where the player teleports in (exact; sits on the ground)
-//     spawnDir    — facing in degrees (0 = north)
-//     arsenalPos  — where the Arsenal crate is placed
-//     garagePos   — where the vehicle-garage flag is placed
-//
-// To get a coordinate in-game: stand on the spot, open the debug console (Esc ->
-// Debug Console), run:  copyToClipboard str (getPosATL player)  — then paste here.
-// Z is taken from terrain at runtime (setPosATL), so heights are 0 here.
-// arsenal/garage are offset a few metres either side of the spawn — adjust to taste.
-STCTI_START_BASES = [
-    ["Central Airport (military)", [15250,17241,0],    0, [15242,17241,0], [15258,17241,0]],
-    ["South-East Airport",         [20556.3,7277.93,0],0, [20548.3,7277.93,0], [20564.3,7277.93,0]],
-    ["North-East Military Base",   [23536.7,21088.1,0],0, [23528.7,21088.1,0], [23544.7,21088.1,0]],
-    ["North-West Airport",         [9156.62,21612.7,0],0, [9148.62,21612.7,0], [9164.62,21612.7,0]]
-];
+// --- Per-map data (start bases + sector table) ---------------------------------
+// THE code/data seam (design doc §14): framework logic is shared across all maps; the only
+// per-map data — STCTI_START_BASES and STCTI_SECTOR_TABLE — lives in each mission's
+// mapData.sqf, stamped in next to this file by build.ps1. Loaded synchronously here, on
+// every machine, before initServer.sqf / initPlayerLocal.sqf run (same as the faction map
+// below, which the existing sector-spawn chain already depends on at this point).
+call compile preprocessFileLineNumbers "mapData.sqf";
 
 // Set at campaign start from the chosen base (see fn_serverPlaceBase). Declared here
 // so other code can reference it; values are overwritten on selection.

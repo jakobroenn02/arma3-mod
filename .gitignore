@@ -1,0 +1,6 @@
+# Generated mission folders — built from framework/ + maps/ by build.ps1.
+# Run `pwsh ./build.ps1` after editing framework/ or maps/. Do not hand-edit these.
+/STCTI.*/
+
+# External Arma mods / unrelated working dirs (not part of this repo's source).
+/LambsDanger/

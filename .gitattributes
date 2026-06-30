@@ -1,0 +1,9 @@
+# Normalize line endings. The build-step (build.ps1) rewrites the STCTI.<Map> mission
+# files on every run; pinning text files to LF keeps git diffs free of line-ending churn
+# so real logic drift stays visible. Arma reads LF and CRLF equally.
+* text=auto
+*.sqf text eol=lf
+*.ext text eol=lf
+*.hpp text eol=lf
+*.sqm text eol=lf
+*.md  text eol=lf
