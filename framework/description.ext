@@ -40,6 +40,8 @@ class CfgFunctions {
             file = "functions\garage";
             class serverPurchase {};
             class requestPurchase {};
+            class garageMenu {};
+            class garagePlace {};
         };
         class ai { file = "functions\ai"; class launchAttack {}; class directorTick {}; };
         class ui { file = "functions\ui"; class initHUD {}; class updateHUD {}; class showZoneSelect {}; };

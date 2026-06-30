@@ -1,7 +1,8 @@
-// fn_serverPurchase.sqf — [SERVER] params: [classname, spawnPos, requester]
+// fn_serverPurchase.sqf — [SERVER] params: [classname, spawnPos, spawnDir, requester]
 // The authority side: looks the item up in STCTI_garageCatalog (price + required unlock are NOT
-// trusted from the client), checks the unlock and affordability, then spawns. See §E1.
-params ["_class", "_pos", "_requester"];
+// trusted from the client), checks the unlock and affordability, then spawns at the player's
+// chosen placement transform. See §E1.
+params ["_class", "_pos", "_dir", "_requester"];
 if (!isServer) exitWith {};
 
 private _item = STCTI_garageCatalog select { (_x select 1) isEqualTo _class };
@@ -16,6 +17,7 @@ if !(["money", _price] call STCTI_fnc_spend) exitWith {
 };
 
 private _veh = createVehicle [_class, _pos, [], 0, "NONE"];
-_veh setDir (random 360);
+_veh setDir _dir;
+_veh setPosATL [_pos select 0, _pos select 1, 0];
 [format ["Purchased %1.", getText (configFile >> "CfgVehicles" >> _class >> "displayName")]] remoteExec ["hint", _requester];
 // TODO (Phase 3): register into storedVehicles.

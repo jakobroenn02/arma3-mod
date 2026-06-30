@@ -40,14 +40,10 @@ call STCTI_fnc_initHUD;
     [_tpl, [_msg]] call BIS_fnc_showNotification;
 }] call CBA_fnc_addEventHandler;
 
-// Garage actions (E3): generate from the catalog once the garage exists. Unlock-gated items
-// only appear once their unlock is granted (the action condition reads STCTI_unlocks).
+// Garage action (E3): one action on the flag opens the garage dialog (fn_garageMenu), which lists
+// the unlocked catalog and starts ghost placement on "Place".
 [{ !isNil "STCTI_garage" && {!isNull STCTI_garage} }, {
-    {
-        _x params ["_label", "_cls", "_price", "_unlock"];
-        private _cond = if (_unlock isEqualTo "") then { "true" } else { format ["'%1' in STCTI_unlocks", _unlock] };
-        STCTI_garage addAction [_label, { [_this select 3] call STCTI_fnc_requestPurchase; }, _cls, 1.5, false, true, "", _cond];
-    } forEach STCTI_garageCatalog;
+    STCTI_garage addAction ["<t color='#7ec8ff'>Vehicle Garage</t>", { call STCTI_fnc_garageMenu; }, nil, 1.5, false, true, "", "true"];
 }] call CBA_fnc_waitUntilAndExecute;
 
 // Unlock changes: refresh the local unlock set (garage conditions read it) and notify.
