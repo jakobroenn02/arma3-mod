@@ -1,10 +1,10 @@
 // fn_serverPurchase.sqf — [SERVER] params: [classname, spawnPos, requester]
-// The authority side: looks the item up in STCTI_GARAGE (price + required unlock are NOT trusted
-// from the client), checks the unlock and affordability, then spawns. See §E1.
+// The authority side: looks the item up in STCTI_garageCatalog (price + required unlock are NOT
+// trusted from the client), checks the unlock and affordability, then spawns. See §E1.
 params ["_class", "_pos", "_requester"];
 if (!isServer) exitWith {};
 
-private _item = STCTI_GARAGE select { (_x select 1) isEqualTo _class };
+private _item = STCTI_garageCatalog select { (_x select 1) isEqualTo _class };
 if (_item isEqualTo []) exitWith { ["Unknown garage item."] remoteExec ["hint", _requester]; };
 (_item select 0) params ["_label", "_cls", "_price", "_unlock"];
 

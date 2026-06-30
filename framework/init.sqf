@@ -37,8 +37,10 @@ STCTI_EV_UNLOCKS_CHANGED     = "STCTI_UnlocksChanged";     // args: [unlocksArra
 // (UNLOCKS_CHANGED) so the garage can gate on it. Capturing a sector grants its grantsUnlock.
 STCTI_unlocks = [];
 // Garage catalog: [label, classname, price, requiredUnlock ("" = always). Player-faction classes
-// for now; faction selection makes this faction-aware later.
-STCTI_GARAGE = [
+// for now; faction selection makes this faction-aware later. NOTE: name must NOT collide with the
+// garage flag object STCTI_garage — SQF variable names are case-insensitive, so STCTI_GARAGE and
+// STCTI_garage would be the same variable. Hence STCTI_garageCatalog.
+STCTI_garageCatalog = [
     ["Buy Hunter HMG (500)",    "B_MRAP_01_hmg_F",                 500,  ""],
     ["Buy Marshall IFV (1500)", "B_APC_Wheeled_01_cannon_F",       1500, ""],
     ["Buy Wipeout CAS (6000)",  "B_Plane_CAS_01_dynamicLoadout_F", 6000, "fixed_wing"]

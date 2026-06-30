@@ -47,7 +47,7 @@ call STCTI_fnc_initHUD;
         _x params ["_label", "_cls", "_price", "_unlock"];
         private _cond = if (_unlock isEqualTo "") then { "true" } else { format ["'%1' in STCTI_unlocks", _unlock] };
         STCTI_garage addAction [_label, { [_this select 3] call STCTI_fnc_requestPurchase; }, _cls, 1.5, false, true, "", _cond];
-    } forEach STCTI_GARAGE;
+    } forEach STCTI_garageCatalog;
 }] call CBA_fnc_waitUntilAndExecute;
 
 // Unlock changes: refresh the local unlock set (garage conditions read it) and notify.
