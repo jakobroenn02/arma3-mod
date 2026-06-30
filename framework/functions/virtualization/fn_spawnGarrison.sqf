@@ -15,11 +15,11 @@ private _n = 0; { _n = _n + _y } forEach _force;
 _rec set ["spawned", true];                 // mark spawned even when empty (nothing to place)
 if (_n <= 0) exitWith {};
 
-private _side = if ((_rec get "owner") isEqualTo "player") then { STCTI_SIDE_PLAYER } else { STCTI_SIDE_ENEMY };
-private _pos  = _rec get "pos";
-private _r    = _rec get "radius";
+private _ownerKey = if ((_rec get "owner") isEqualTo "player") then { "player" } else { "enemy" };
+private _pos      = _rec get "pos";
+private _r        = _rec get "radius";
 
-private _grp = [_force, _side, _pos, _r * 0.6] call STCTI_fnc_spawnForce;
+private _grp = [_force, _ownerKey, _pos, _r * 0.6] call STCTI_fnc_spawnForce;
 private _wp  = _grp addWaypoint [_pos, _r * 0.4];
 _wp setWaypointType "GUARD";
 _grp setBehaviour "AWARE";

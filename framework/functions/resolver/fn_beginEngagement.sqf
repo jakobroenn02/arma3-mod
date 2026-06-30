@@ -26,9 +26,15 @@ private _eng = createHashMapFromArray [
     ["accD", 0],
     ["ticks", 0],
     ["paused", false],
-    ["done", false]
+    ["done", false],
+    ["spawned", false],   // live-units state (virtualization handoff)
+    ["groups", []]        // [attackerGroup, defenderGroup] while spawned
 ];
 STCTI_engagements set [_sectorId, _eng];
 diag_log format ["[STCTI] Engagement begun at %1: A=%2 (Sraw %3) vs D=%4 (Sraw %5)",
     _sectorId, _att, _eng get "startA", _def, _eng get "startD"];
+
+// If a player is already watching, hand off to live immediately so there's no abstract gap
+// while the manager's next tick comes around; otherwise it resolves abstractly until observed.
+if ([_sectorId] call STCTI_fnc_isSectorObserved) then { _eng call STCTI_fnc_spawnEngagement; };
 _eng

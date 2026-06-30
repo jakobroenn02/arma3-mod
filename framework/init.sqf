@@ -75,9 +75,12 @@ STCTI_ATTACK_ROSTER   = [["rifleman", 8]];  // attacker composition (typeId -> c
 STCTI_GARRISON_SIZE   = 6;      // default enemy garrison (riflemen) seeded per sector at campaign start
 STCTI_VIRT_INTERVAL   = 5;      // seconds between garrison spawn/despawn (proximity-cache) checks
 
-// Abstract typeId -> real classname (faction-abstraction seam; Phase 3 expands per faction/role).
-STCTI_TYPE_CLASS = createHashMapFromArray [
-    ["rifleman", "O_Soldier_F"]
+// Faction map: owner ("player"/"enemy") -> (abstract typeId -> real classname). Side-aware so a
+// force never spawns wearing the other faction's uniform. The fn_spawnForce seam; Phase 3
+// expands this per faction (NATO / CSAT / AAF) and role.
+STCTI_FACTION = createHashMapFromArray [
+    ["player", createHashMapFromArray [["rifleman", "B_Soldier_F"]]],
+    ["enemy",  createHashMapFromArray [["rifleman", "O_Soldier_F"]]]
 ];
 
 // --- Per-map data (start bases + sector table) ---------------------------------
@@ -93,9 +96,6 @@ call compile preprocessFileLineNumbers "mapData.sqf";
 STCTI_BASE_POS = [0,0,0];
 STCTI_BASE_DIR = 0;
 
-// --- Minimal faction map (slice: riflemen only) --------------------------------
-STCTI_FACTION_ENEMY = createHashMapFromArray [
-    ["riflemen", ["O_Soldier_F", "O_Soldier_GL_F", "O_Soldier_AR_F"]]
-];
+// --- Sides ---------------------------------------------------------------------
 STCTI_SIDE_ENEMY  = east;
 STCTI_SIDE_PLAYER = west;

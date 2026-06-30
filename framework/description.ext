@@ -50,7 +50,6 @@ class CfgFunctions {
             class forceMetrics {};
             class forceOutput {};
             class applyCasualties {};
-            class rosterToClasses {};
             class beginEngagement {};
             class checkBreak {};
             class resolveTick {};
@@ -65,6 +64,10 @@ class CfgFunctions {
             class recountForce {};
             class spawnGarrison {};
             class despawnGarrison {};
+            class spawnEngagement {};
+            class despawnEngagement {};
+            class syncEngagement {};
+            class resolveSpawnedEngagement {};
             class startVirtualization {};
         };
     };

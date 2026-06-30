@@ -306,9 +306,11 @@ Ordered to **de-risk the two things that kill projects like this** (is it fun? d
 
 ### Phase 3 — Data-driven sectors & progression
 **Goal:** content authoring without code.
-**Do:** move sectors to `CfgSTCTISectors`; faction abstraction layer; implement all three sector types + their effects; unlock flags wired to the garage/arsenal; **light defensive placement** at owned sectors (reinforce garrison + place static turret, resource-costed — §6.1).
-**Exit:** adding a sector = editing data; capturing a military complex unlocks its category; the player can harden an owned sector.
+**Do:** move sectors to `CfgSTCTISectors`; faction abstraction layer; implement all three sector types + their effects; unlock flags wired to the garage/arsenal; **light defensive placement** at owned sectors (reinforce garrison + place static turret, resource-costed — §6.1); **player faction selection at campaign setup** (see below).
+**Exit:** adding a sector = editing data; capturing a military complex unlocks its category; the player can harden an owned sector; the player picks their faction at setup and the whole campaign uses it.
 **Risk:** medium (mostly schema discipline).
+
+> **Player faction selection (setup phase).** The player chooses which native faction to play (NATO / CSAT / AAF) at campaign start, alongside the existing base selection. Implementation: the faction abstraction is already side-aware — `STCTI_FACTION` maps `"player"|"enemy" -> (role -> classname)`, and `STCTI_SIDE_PLAYER/ENEMY` set the sides. Faction selection just populates those two from the chosen native faction (and picks a distinct enemy faction), so all spawning (`fn_spawnForce`), garrisons, and the garage/arsenal follow automatically. UI piggybacks on the campaign-start zone-select dialog (`fn_showZoneSelect`). Stays within the v1 non-goal of native factions only (§1).
 
 ### Phase 4 — AI director depth
 **Goal:** the pacing that defines the game.
