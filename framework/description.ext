@@ -57,6 +57,11 @@ class CfgFunctions {
             class resolverSelfTest {};
             class calibrate {};
         };
+        class layout {
+            file = "functions\layout";
+            class layoutToWorld {};
+            class layoutComposition {};
+        };
         class virtualization {
             file = "functions\virtualization";
             class observerPoints {};

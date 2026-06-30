@@ -78,12 +78,63 @@ STCTI_SPAWN_BUDGET    = 60;     // max framework-spawned AI units alive at once 
                                 // Observed forces beyond this stay abstract/data until budget frees,
                                 // spawned in priority order (active fights first, then nearest garrisons).
 
-// Faction map: owner ("player"/"enemy") -> (abstract typeId -> real classname). Side-aware so a
-// force never spawns wearing the other faction's uniform. The fn_spawnForce seam; Phase 3
-// expands this per faction (NATO / CSAT / AAF) and role.
+// Faction map: owner ("player"/"enemy") -> (resolverType -> real classname). Side-aware so a force
+// never spawns wearing the other faction's uniform, and keyed by the same CfgSTCTIUnitTypes ids the
+// resolver uses, so a layout slot's resolverType resolves straight to a class. Phase 3 expands to
+// AAF / per-faction selection (sector-layout-spec §1.3).
 STCTI_FACTION = createHashMapFromArray [
-    ["player", createHashMapFromArray [["rifleman", "B_Soldier_F"]]],
-    ["enemy",  createHashMapFromArray [["rifleman", "O_Soldier_F"]]]
+    ["player", createHashMapFromArray [   // NATO
+        ["rifleman", "B_Soldier_F"], ["at_team", "B_soldier_AT_F"], ["aa_team", "B_soldier_AA_F"],
+        ["mrap", "B_MRAP_01_hmg_F"], ["ifv", "B_APC_Wheeled_01_cannon_F"], ["mbt", "B_MBT_01_cannon_F"],
+        ["uav_armed", "B_UAV_02_dynamicLoadout_F"], ["heli_atk", "B_Heli_Attack_01_dynamicLoadout_F"], ["jet_cas", "B_Plane_CAS_01_dynamicLoadout_F"]
+    ]],
+    ["enemy", createHashMapFromArray [    // CSAT
+        ["rifleman", "O_Soldier_F"], ["at_team", "O_Soldier_AT_F"], ["aa_team", "O_Soldier_AA_F"],
+        ["mrap", "O_MRAP_02_hmg_F"], ["ifv", "O_APC_Wheeled_02_rcws_v2_F"], ["mbt", "O_MBT_02_cannon_F"],
+        ["uav_armed", "O_UAV_02_dynamicLoadout_F"], ["heli_atk", "O_Heli_Attack_02_dynamicLoadout_F"], ["jet_cas", "O_Plane_CAS_02_dynamicLoadout_F"]
+    ]]
+];
+
+// Side-aware static-weapon classes (a static is an object, not a man, so it needs its own map).
+// Keyed by role (sector-layout-spec §1.3). Phase 3 expands per faction.
+STCTI_STATIC_CLASS = createHashMapFromArray [
+    ["player", createHashMapFromArray [["static_he", "B_HMG_01_high_F"], ["static_at", "B_static_AT_F"], ["static_aa", "B_static_AA_F"]]],
+    ["enemy",  createHashMapFromArray [["static_he", "O_HMG_01_high_F"], ["static_at", "O_static_AT_F"], ["static_aa", "O_static_AA_F"]]]
+];
+
+// --- Sector layouts (sector-layout-spec) ---------------------------------------
+// Role -> [spawnKind, resolverType]. spawnKind: "infantry"|"vehicle"|"static". resolverType is the
+// CfgSTCTIUnitTypes id the slot contributes to abstract strength ("" = decoration, not counted).
+STCTI_ROLES = createHashMapFromArray [
+    ["inf_post",  ["infantry", "rifleman"]],
+    ["at_post",   ["infantry", "at_team"]],
+    ["aa_post",   ["infantry", "aa_team"]],
+    ["mrap",      ["vehicle",  "mrap"]],
+    ["ifv",       ["vehicle",  "ifv"]],
+    ["mbt",       ["vehicle",  "mbt"]],
+    ["static_he", ["static",   "rifleman"]],
+    ["static_at", ["static",   "at_team"]],
+    ["static_aa", ["static",   "aa_team"]]
+];
+
+// Layout archetypes: ordered slot lists keyed by id. A slot is polar from the sector centre and
+// rotates with the sector's heading: [role, distFromCentre, bearingFromCentre, facingOffset].
+// Author once, reuse on many sectors. Towns use the empty layout (garrison goes into buildings).
+STCTI_LAYOUTS = createHashMapFromArray [
+    ["military_small", [
+        ["mbt",       18, 200,   0],
+        ["static_he", 22,  40,  40],
+        ["static_at", 24, 150, 150],
+        ["inf_post",  15,  90,  90],
+        ["inf_post",  15, 270, 270],
+        ["inf_post",  20,   0,   0]
+    ]],
+    ["fuel_depot", [
+        ["static_he", 16,  60,  60],
+        ["inf_post",  12, 180, 180],
+        ["inf_post",  12,   0,   0]
+    ]],
+    ["town_light", []]
 ];
 
 // --- Per-map data (start bases + sector table) ---------------------------------
