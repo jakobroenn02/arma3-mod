@@ -60,6 +60,9 @@ class CfgFunctions {
             file = "functions\virtualization";
             class observerPoints {};
             class observerDebug {};
+            class forceCount {};
+            class countSpawnedUnits {};
+            class offloadGroup {};
             class spawnForce {};
             class recountForce {};
             class spawnGarrison {};

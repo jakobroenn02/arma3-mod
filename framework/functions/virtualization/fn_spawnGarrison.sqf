@@ -25,3 +25,4 @@ _wp setWaypointType "GUARD";
 _grp setBehaviour "AWARE";
 _grp setCombatMode "YELLOW";
 _rec set ["garrisonGroup", _grp];
+[_grp] call STCTI_fnc_offloadGroup;   // headless-client offload (no-op in SP)

@@ -40,6 +40,9 @@ _wp setWaypointType "SAD";
 _attGrp setBehaviour "AWARE";
 _attGrp setCombatMode "RED";
 
+[_attGrp] call STCTI_fnc_offloadGroup;   // headless-client offload (no-op in SP)
+[_defGrp] call STCTI_fnc_offloadGroup;
+
 _eng set ["groups", [_attGrp, _defGrp]];
 _eng set ["spawned", true];
 diag_log format ["[STCTI] Engagement at %1 SPAWNED live (observer arrived).", _id];

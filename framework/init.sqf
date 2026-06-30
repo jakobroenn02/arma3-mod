@@ -74,6 +74,9 @@ STCTI_PLAYER_GARRISON = 4;      // baseline virtual hold force (riflemen) a sect
 STCTI_ATTACK_ROSTER   = [["rifleman", 8]];  // attacker composition (typeId -> count); same for live & abstract
 STCTI_GARRISON_SIZE   = 6;      // default enemy garrison (riflemen) seeded per sector at campaign start
 STCTI_VIRT_INTERVAL   = 5;      // seconds between garrison spawn/despawn (proximity-cache) checks
+STCTI_SPAWN_BUDGET    = 60;     // max framework-spawned AI units alive at once (the FPS ceiling).
+                                // Observed forces beyond this stay abstract/data until budget frees,
+                                // spawned in priority order (active fights first, then nearest garrisons).
 
 // Faction map: owner ("player"/"enemy") -> (abstract typeId -> real classname). Side-aware so a
 // force never spawns wearing the other faction's uniform. The fn_spawnForce seam; Phase 3

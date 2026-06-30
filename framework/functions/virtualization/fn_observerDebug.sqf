@@ -6,7 +6,8 @@
 if (!isServer) exitWith {};
 
 private _pts = call STCTI_fnc_observerPoints;
-private _txt = format ["[STCTI] observer points: %1\n", count _pts];
+private _txt = format ["[STCTI] observer points: %1   budget: %2 / %3 units spawned\n",
+    count _pts, call STCTI_fnc_countSpawnedUnits, STCTI_SPAWN_BUDGET];
 {
     _x params ["_p", "_rad"];
     _txt = _txt + format ["  at [%1, %2]  r=%3 m\n", round (_p select 0), round (_p select 1), round _rad];
@@ -14,7 +15,8 @@ private _txt = format ["[STCTI] observer points: %1\n", count _pts];
 
 {
     private _rec = (STCTI_state get "sectors") get _x;
-    _txt = _txt + format ["  sector %1 (%2): observed=%3\n", _x, _rec get "owner", [_x] call STCTI_fnc_isSectorObserved];
+    _txt = _txt + format ["  sector %1 (%2): observed=%3 spawned=%4\n",
+        _x, _rec get "owner", [_x] call STCTI_fnc_isSectorObserved, _rec get "spawned"];
 } forEach (keys (STCTI_state get "sectors"));
 
 hint _txt;
