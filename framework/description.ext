@@ -99,6 +99,52 @@ class CfgSTCTIUnitTypes {
     class jet_cas    { cp = 12.0; category = "air";      armorClass = "air";     antiArmor = 1.0;  antiAir = 0.0; };
 };
 
+// CfgSTCTISectors — authored STRATEGIC sectors per map (military / resource / factory). Towns are
+// auto-detected from the engine's location index (fn_initSectors), so only the few high-value,
+// designer-placed installations live here. Keyed by worldName. See sector-layout-spec §1.4 / §2.5.
+class CfgSTCTISectors {
+    class Altis {
+        class airfield {
+            type          = "military";
+            position[]    = {23100, 18800, 0};
+            heading       = 135;
+            captureRadius = 300;
+            income[]      = {};
+            layout        = "military_small";
+            grantsUnlock  = "fixed_wing";
+        };
+        class fueldepot {
+            type          = "resource_fuel";
+            position[]    = {9200, 15500, 0};   // PLACEHOLDER — snap to the real depot (spec §5 export)
+            heading       = 0;
+            captureRadius = 200;
+            income[]      = {{"fuel", 40}};
+            layout        = "fuel_depot";
+            grantsUnlock  = "";
+        };
+    };
+    class Tanoa {
+        class north_mil {
+            type          = "military";
+            position[]    = {10086.8, 11772.5, 0};
+            heading       = 0;
+            captureRadius = 300;
+            income[]      = {};
+            layout        = "military_small";
+            grantsUnlock  = "fixed_wing";
+        };
+        class se_air {
+            type          = "resource_fuel";
+            position[]    = {11690.4, 3070.36, 0};
+            heading       = 0;
+            captureRadius = 250;
+            income[]      = {{"fuel", 40}};
+            layout        = "fuel_depot";
+            grantsUnlock  = "";
+        };
+    };
+};
+
 // CfgNotifications — generic STCTI popup templates. BIS_fnc_showNotification takes a TEMPLATE
 // name (not free text); description = "%1" lets every call pass its message as argument 1:
 //     ["STCTI_Info", ["Sector captured: kavala"]] call BIS_fnc_showNotification;

@@ -137,12 +137,11 @@ STCTI_LAYOUTS = createHashMapFromArray [
     ["town_light", []]
 ];
 
-// --- Per-map data (start bases + sector table) ---------------------------------
-// THE code/data seam (design doc §14): framework logic is shared across all maps; the only
-// per-map data — STCTI_START_BASES and STCTI_SECTOR_TABLE — lives in each mission's
-// mapData.sqf, stamped in next to this file by build.ps1. Loaded synchronously here, on
-// every machine, before initServer.sqf / initPlayerLocal.sqf run (same as the faction map
-// below, which the existing sector-spawn chain already depends on at this point).
+// --- Per-map data (start bases) ------------------------------------------------
+// THE code/data seam (design doc §14): framework logic is shared across all maps; the only per-map
+// SQF data is STCTI_START_BASES, in each mission's mapData.sqf (stamped in next to this file by
+// build.ps1). Sectors aren't here — towns are auto-detected and strategic sectors are authored in
+// CfgSTCTISectors. Loaded synchronously, on every machine, before initServer/initPlayerLocal run.
 call compile preprocessFileLineNumbers "mapData.sqf";
 
 // Set at campaign start from the chosen base (see fn_serverPlaceBase). Declared here

@@ -3,7 +3,7 @@
 // defenderForce is DERIVED from the layout (sector-layout-spec §2.4) — never hand-typed — so the
 // live spawn and the resolver can't disagree. Towns (empty layout) fall back to a rifleman baseline.
 // _heading / _layoutId default so older callers don't break. See §C1.
-params ["_id", "_type", "_pos", "_radius", ["_income", []], ["_heading", 0], ["_layoutId", "town_light"]];
+params ["_id", "_type", "_pos", "_radius", ["_income", []], ["_heading", 0], ["_layoutId", "town_light"], ["_grantsUnlock", ""]];
 if (!isServer) exitWith {};
 
 private _comp = [_layoutId] call STCTI_fnc_layoutComposition;
@@ -13,7 +13,7 @@ private _rec = createHashMapFromArray [
     ["id", _id], ["type", _type], ["pos", _pos], ["radius", _radius],
     ["owner", "enemy"], ["captureProgress", 0],
     ["income", createHashMapFromArray _income],
-    ["heading", _heading], ["layout", _layoutId],
+    ["heading", _heading], ["layout", _layoutId], ["grantsUnlock", _grantsUnlock],
     ["defenderForce", _comp],
     ["garrison", []], ["garrisonGroup", grpNull], ["spawned", false]
 ];
