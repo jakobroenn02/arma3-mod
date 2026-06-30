@@ -62,6 +62,10 @@ class CfgFunctions {
             class layoutToWorld {};
             class layoutComposition {};
         };
+        class progression {
+            file = "functions\progression";
+            class startProgression {};
+        };
         class virtualization {
             file = "functions\virtualization";
             class observerPoints {};

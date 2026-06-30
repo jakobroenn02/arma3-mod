@@ -40,11 +40,22 @@ call STCTI_fnc_initHUD;
     [_tpl, [_msg]] call BIS_fnc_showNotification;
 }] call CBA_fnc_addEventHandler;
 
-// Garage actions (E3): wait for the server-spawned garage, then wire the menu.
+// Garage actions (E3): generate from the catalog once the garage exists. Unlock-gated items
+// only appear once their unlock is granted (the action condition reads STCTI_unlocks).
 [{ !isNil "STCTI_garage" && {!isNull STCTI_garage} }, {
-    STCTI_garage addAction ["Buy Hunter (500)",   { ["B_MRAP_01_F", 500] call STCTI_fnc_requestPurchase; }];
-    STCTI_garage addAction ["Buy Marshall (1500)", { ["B_APC_Wheeled_01_cannon_F", 1500] call STCTI_fnc_requestPurchase; }];
+    {
+        _x params ["_label", "_cls", "_price", "_unlock"];
+        private _cond = if (_unlock isEqualTo "") then { "true" } else { format ["'%1' in STCTI_unlocks", _unlock] };
+        STCTI_garage addAction [_label, { [_this select 3] call STCTI_fnc_requestPurchase; }, _cls, 1.5, false, true, "", _cond];
+    } forEach STCTI_GARAGE;
 }] call CBA_fnc_waitUntilAndExecute;
+
+// Unlock changes: refresh the local unlock set (garage conditions read it) and notify.
+[STCTI_EV_UNLOCKS_CHANGED, {
+    params ["_unlocks", "_new"];
+    STCTI_unlocks = _unlocks;
+    if (_new != "") then { ["STCTI_Info", [format ["New unlock: %1", _new]]] call BIS_fnc_showNotification; };
+}] call CBA_fnc_addEventHandler;
 
 // Push current resources to this (joining) client once.
 if (isServer) then {

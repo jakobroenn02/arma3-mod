@@ -30,6 +30,19 @@ STCTI_EV_SECTOR_CAPTURED   = "STCTI_SectorCaptured";    // args: [sectorId, newO
 STCTI_EV_RESOURCES_CHANGED = "STCTI_ResourcesChanged";  // args: [resourcesHashMap]
 STCTI_EV_ATTACK_INBOUND    = "STCTI_AttackInbound";     // args: [sectorId]
 STCTI_EV_ENGAGEMENT_RESOLVED = "STCTI_EngagementResolved"; // args: [sectorId, routedSide, attackerForce, defenderForce, startA, startD, attackerOwner, defenderOwner]
+STCTI_EV_UNLOCKS_CHANGED     = "STCTI_UnlocksChanged";     // args: [unlocksArray, newlyUnlockedId]
+
+// --- Progression: unlocks + garage catalog -------------------------------------
+// STCTI_unlocks is the server-authoritative list of granted unlock ids, broadcast to clients
+// (UNLOCKS_CHANGED) so the garage can gate on it. Capturing a sector grants its grantsUnlock.
+STCTI_unlocks = [];
+// Garage catalog: [label, classname, price, requiredUnlock ("" = always). Player-faction classes
+// for now; faction selection makes this faction-aware later.
+STCTI_GARAGE = [
+    ["Buy Hunter HMG (500)",    "B_MRAP_01_hmg_F",                 500,  ""],
+    ["Buy Marshall IFV (1500)", "B_APC_Wheeled_01_cannon_F",       1500, ""],
+    ["Buy Wipeout CAS (6000)",  "B_Plane_CAS_01_dynamicLoadout_F", 6000, "fixed_wing"]
+];
 
 // --- Tunables (slice values — tune by feel) ------------------------------------
 STCTI_ECONOMY_INTERVAL = 60;    // economy tick seconds
