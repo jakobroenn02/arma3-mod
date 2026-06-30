@@ -1,23 +1,24 @@
-// fn_isSectorObserved.sqf — [SERVER] params: [_sectorId] -> Bool
-// Is any player close enough to a sector that an attack there should spawn as LIVE units
-// (rather than resolve abstractly)?
+// fn_isSectorObserved.sqf — [SERVER] params: [_sectorId, _spawned] -> Bool
+// Is any player watching this sector closely enough that a fight here should be LIVE units
+// (rather than resolved abstractly)? True if any observer point (body / altitude-scaled
+// aircraft / UAV — see fn_observerPoints) lies within (sectorRadius + observerRadius).
 //
-// [PLACEHOLDER] Proximity-only: a player within (sectorRadius + STCTI_OBSERVE_RANGE) of the
-// centre counts as observing. This is deliberately the single seam that Phase 2 step 2
-// replaces with proper observer points — body position on foot, the sensor/camera target in
-// aircraft with an altitude-scaled radius, and the UAV camera's ground target when piloting a
-// drone (see strategic-cti-framework-design.md §9). Keep that upgrade contained to this file.
-params ["_sectorId"];
+// _spawned (default false): pass true when the sector's fight is already spawned, to add
+// STCTI_OBS_HYSTERESIS to the threshold — so a force that just spawned doesn't thrash back to
+// abstract the instant the player wobbles at the boundary (spawn near, despawn a bit farther).
+params ["_sectorId", ["_spawned", false]];
 
 private _rec = (STCTI_state get "sectors") get _sectorId;
 if (isNil "_rec") exitWith { false };
 
-private _pos   = _rec get "pos";
-private _reach = (_rec get "radius") + STCTI_OBSERVE_RANGE;
+private _pos    = _rec get "pos";
+private _r      = _rec get "radius";
+private _margin = if (_spawned) then { STCTI_OBS_HYSTERESIS } else { 0 };
 
 private _observed = false;
 {
-    if (alive _x && {(_x distance2D _pos) < _reach}) exitWith { _observed = true; };
-} forEach allPlayers;
+    _x params ["_opos", "_orad"];
+    if ((_opos distance2D _pos) < (_r + _orad + _margin)) exitWith { _observed = true; };
+} forEach (call STCTI_fnc_observerPoints);
 
 _observed

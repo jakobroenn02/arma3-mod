@@ -11,5 +11,7 @@ if (isNil "STCTI_SECTOR_TABLE") exitWith {
 {
     _x params ["_id", "_type", "_pos", "_radius", "_income"];
     [_id, _type, _pos, _radius, _income] call STCTI_fnc_registerSector;
-    [_id] call STCTI_fnc_spawnSectorGarrison;
+    // Seed the enemy garrison as DATA only. It spawns lazily when a player observes the sector
+    // (fn_startVirtualization) — Phase 1's always-on garrison spawn is gone.
+    ((STCTI_state get "sectors") get _id) set ["defenderForce", createHashMapFromArray [["rifleman", STCTI_GARRISON_SIZE]]];
 } forEach STCTI_SECTOR_TABLE;

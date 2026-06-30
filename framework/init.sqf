@@ -60,13 +60,20 @@ STCTI_DEFBONUS = createHashMapFromArray [
     ["town", 0.15], ["resource_fuel", 0.20], ["resource_ammo", 0.20], ["military", 0.35]
 ];
 
-// --- Director ↔ resolver wiring (Phase 2 step 1) -------------------------------
-// An attack on a sector NObody is watching resolves as math; one being watched spawns live.
-STCTI_OBSERVE_RANGE   = 1500;   // [PLACEHOLDER] player within (sectorRadius + this) => observed.
-                                // Phase 2 step 2 replaces this with altitude/sensor-scaled
-                                // observer points that follow the UAV camera.
+// --- Director ↔ resolver wiring + observation (Phase 2) ------------------------
+// An attack on a sector nobody is watching resolves as math; one being watched spawns live.
+// "Observed" = an observer point within (sectorRadius + observerRadius). Observer points are
+// altitude-scaled (a jet/UAV up high sees and reaches far) and projected downrange along the
+// vehicle's facing (your attention is ahead, not under your feet). See fn_observerPoints.
+STCTI_OBS_GROUND_R    = 1500;   // observer radius on foot / in a ground vehicle (m)
+STCTI_OBS_ALT_FACTOR  = 2.0;    // observer radius grows this many m per m of altitude
+STCTI_OBS_MAX_R       = 5000;   // cap on observer radius (m)
+STCTI_OBS_LOOKAHEAD   = 1.5;    // aircraft/UAV observer point projects this × altitude downrange
+STCTI_OBS_HYSTERESIS  = 1000;   // once spawned, stay spawned until this much further out (anti-thrash)
 STCTI_PLAYER_GARRISON = 4;      // baseline virtual hold force (riflemen) a sector gains on player capture
 STCTI_ATTACK_ROSTER   = [["rifleman", 8]];  // attacker composition (typeId -> count); same for live & abstract
+STCTI_GARRISON_SIZE   = 6;      // default enemy garrison (riflemen) seeded per sector at campaign start
+STCTI_VIRT_INTERVAL   = 5;      // seconds between garrison spawn/despawn (proximity-cache) checks
 
 // Abstract typeId -> real classname (faction-abstraction seam; Phase 3 expands per faction/role).
 STCTI_TYPE_CLASS = createHashMapFromArray [
