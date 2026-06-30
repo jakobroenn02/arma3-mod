@@ -11,7 +11,7 @@ call STCTI_fnc_initHUD;
 // Attack-warning handler (F2).
 [STCTI_EV_ATTACK_INBOUND, {
     params ["_id"];
-    [format ["Enemy forces inbound — %1 under threat!", _id]] call BIS_fnc_showNotification;
+    ["STCTI_Alert", [format ["Enemy forces inbound — %1 under threat!", _id]]] call BIS_fnc_showNotification;
     playSound "FD_Start_F";
 }] call CBA_fnc_addEventHandler;
 
@@ -19,7 +19,7 @@ call STCTI_fnc_initHUD;
 [STCTI_EV_SECTOR_CAPTURED, {
     params ["_id", "_owner"];
     if (_owner isEqualTo "player") then {
-        [format ["Sector captured: %1", _id]] call BIS_fnc_showNotification;
+        ["STCTI_Info", [format ["Sector captured: %1", _id]]] call BIS_fnc_showNotification;
     };
 }] call CBA_fnc_addEventHandler;
 
@@ -35,7 +35,9 @@ call STCTI_fnc_initHUD;
         case (_routed isEqualTo "attacker" && {_defOwner isEqualTo "player"}): { format ["Held %1 — enemy assault repelled.", _id] };
         default                                                               { format ["Assault on %1 failed.", _id] };
     };
-    [_msg] call BIS_fnc_showNotification;
+    // Red alert if the player lost a sector; neutral info otherwise.
+    private _tpl = if (_routed isEqualTo "defender" && {_defOwner isEqualTo "player"}) then { "STCTI_Alert" } else { "STCTI_Info" };
+    [_tpl, [_msg]] call BIS_fnc_showNotification;
 }] call CBA_fnc_addEventHandler;
 
 // Garage actions (E3): wait for the server-spawned garage, then wire the menu.

@@ -76,6 +76,28 @@ class CfgSTCTIUnitTypes {
     class jet_cas    { cp = 12.0; category = "air";      armorClass = "air";     antiArmor = 1.0;  antiAir = 0.0; };
 };
 
+// CfgNotifications — generic STCTI popup templates. BIS_fnc_showNotification takes a TEMPLATE
+// name (not free text); description = "%1" lets every call pass its message as argument 1:
+//     ["STCTI_Info", ["Sector captured: kavala"]] call BIS_fnc_showNotification;
+class CfgNotifications {
+    class STCTI_Info {
+        title       = "STCTI";
+        iconPicture = "\A3\ui_f\data\map\markers\military\dot_ca.paa";
+        description = "%1";
+        color[]     = {0.7, 0.85, 1.0, 1.0};
+        duration    = 6;
+        priority    = 4;
+    };
+    class STCTI_Alert {
+        title       = "STCTI";
+        iconPicture = "\A3\ui_f\data\map\markers\military\warning_ca.paa";
+        description = "%1";
+        color[]     = {1.0, 0.4, 0.4, 1.0};
+        duration    = 7;
+        priority    = 8;
+    };
+};
+
 // Slice: permissive remote exec (mode 2 = all allowed). Tighten to a whitelist later.
 class CfgRemoteExec {
     class Functions { mode = 2; };
