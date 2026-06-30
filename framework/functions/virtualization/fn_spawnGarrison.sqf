@@ -25,14 +25,11 @@ private _grp = [_force, _ownerKey, _pos, _r * 0.6, _heading, _layout] call STCTI
 _grp setBehaviour "AWARE";
 _grp setCombatMode "YELLOW";
 
-// Towns: let LAMBS put the infantry into nearby buildings instead of standing in the open.
-// Authored layouts hold their emplacements via a GUARD waypoint on the sector centre.
-if (_layout isEqualTo "town_light" && {STCTI_HAS_LAMBS_WP}) then {
-    [_grp, _pos, _r] call lambs_wp_fnc_taskGarrison;
-} else {
-    private _wp = _grp addWaypoint [_pos, _r * 0.4];
-    _wp setWaypointType "GUARD";
-};
+// Hold the sector with a GUARD waypoint on its centre. (LAMBS's danger FSM still drives the
+// AI's tactics automatically — cover, suppression, building use. Explicit LAMBS task orders like
+// taskGarrison are deferred to the Phase 5 order layer, where the signatures are wrapped properly.)
+private _wp = _grp addWaypoint [_pos, _r * 0.4];
+_wp setWaypointType "GUARD";
 
 _rec set ["garrisonGroup", _grp];
 [_grp] call STCTI_fnc_offloadGroup;   // headless-client offload (no-op in SP)
