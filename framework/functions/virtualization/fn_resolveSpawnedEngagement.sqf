@@ -12,7 +12,7 @@ private _rec = (STCTI_state get "sectors") get _id;
 
 if (_routed isEqualTo "defender") then {
     // Attacker took the sector; attacker group becomes the new garrison.
-    if (!isNull _defGrp) then { { deleteVehicle _x } forEach units _defGrp; deleteGroup _defGrp; };
+    [_defGrp] call STCTI_fnc_despawnGroup;
     [_id, _eng get "attackerOwner"] call STCTI_fnc_setSectorOwner;   // clears garrison + spawned, recolours, fires capture
     if (!isNil "_rec") then {
         _rec set ["garrisonGroup", _attGrp];
@@ -21,7 +21,7 @@ if (_routed isEqualTo "defender") then {
     };
 } else {
     // Attacker routed; defender holds. Remove attacker remnants, keep the defender as garrison.
-    if (!isNull _attGrp) then { { deleteVehicle _x } forEach units _attGrp; deleteGroup _attGrp; };
+    [_attGrp] call STCTI_fnc_despawnGroup;
     if (!isNil "_rec") then {
         _rec set ["garrisonGroup", _defGrp];
         _rec set ["spawned", !isNull _defGrp];

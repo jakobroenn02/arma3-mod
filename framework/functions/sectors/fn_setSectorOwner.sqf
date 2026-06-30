@@ -13,7 +13,7 @@ _rec set ["captureProgress", if (_owner isEqualTo "player") then {1} else {0}];
 // Ownership changed: drop the previous owner's live garrison so the virtualization manager
 // re-spawns the NEW owner's garrison (from defenderForce) on its next tick.
 private _g = _rec getOrDefault ["garrisonGroup", grpNull];
-if (!isNull _g) then { { deleteVehicle _x } forEach units _g; deleteGroup _g; };
+if (!isNull _g) then { [_g] call STCTI_fnc_despawnGroup; };
 _rec set ["garrisonGroup", grpNull];
 _rec set ["spawned", false];
 

@@ -11,8 +11,7 @@ if !(_rec get "spawned") exitWith {};
 private _grp = _rec getOrDefault ["garrisonGroup", grpNull];
 if (!isNull _grp) then {
     _rec set ["defenderForce", [_grp] call STCTI_fnc_recountForce];
-    { deleteVehicle _x } forEach units _grp;
-    deleteGroup _grp;
+    [_grp] call STCTI_fnc_despawnGroup;
 };
 _rec set ["garrisonGroup", grpNull];
 _rec set ["spawned", false];

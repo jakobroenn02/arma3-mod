@@ -9,10 +9,10 @@ STCTI_START_BASES = [
     ["North-West Airport",         [9156.62,21612.7,0],0, [9148.62,21612.7,0], [9164.62,21612.7,0]]
 ];
 
-// Sectors: ["id", "type", pos, captureRadius, incomeArray]
+// Sectors: ["id", "type", pos, captureRadius, incomeArray, heading, layoutId]
 STCTI_SECTOR_TABLE = [
-    // id, type, position, captureRadius, income
-    ["kavala",    "town",          [3500,13200,0], 200, [["money",50],["manpower",2]]],
-    ["airfield",  "military",      [23100,18800,0],300, [["money",30]]],
-    ["fueldepot", "resource_fuel", [9200,15500,0], 200, [["fuel",40]]]
+    // id, type, position, captureRadius, income, heading, layout
+    ["kavala",    "town",          [3500,13200,0], 200, [["money",50],["manpower",2]],   0, "town_light"],
+    ["airfield",  "military",      [23100,18800,0],300, [["money",30]],               135, "military_small"],
+    ["fueldepot", "resource_fuel", [9200,15500,0], 200, [["fuel",40]],                  0, "fuel_depot"]
 ];

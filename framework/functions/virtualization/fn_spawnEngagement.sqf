@@ -17,10 +17,11 @@ private _r   = _rec get "radius";
 private _attOwner = _eng get "attackerOwner";   // "player" | "enemy"
 private _defOwner = _eng get "defenderOwner";
 
-// Defender: adopt the live standing garrison if one is up, else spawn from the engagement counts.
+// Defender: adopt the live standing garrison if one is up, else spawn from the engagement counts
+// using the sector's own layout (so a military sector defends with its tank/statics/posts).
 private _defGrp = _rec getOrDefault ["garrisonGroup", grpNull];
 if (isNull _defGrp || {!(_rec get "spawned")}) then {
-    _defGrp = [_eng get "defender", _defOwner, _pos, _r * 0.5] call STCTI_fnc_spawnForce;
+    _defGrp = [_eng get "defender", _defOwner, _pos, _r * 0.5, _rec getOrDefault ["heading", 0], _rec getOrDefault ["layout", "town_light"]] call STCTI_fnc_spawnForce;
     _rec set ["garrisonGroup", _defGrp];
     _rec set ["spawned", true];
 };

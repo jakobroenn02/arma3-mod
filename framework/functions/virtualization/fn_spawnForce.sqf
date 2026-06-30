@@ -1,30 +1,49 @@
-// fn_spawnForce.sqf — [SERVER] params: [_force, _ownerKey, _center, _scatter] -> Group
-// Instantiates an abstract force (HashMap typeId -> count) as live units, scattered within
-// _scatter m of _center, each tagged with its STCTI_type so fn_recountForce can read survivors
-// back. _ownerKey ("player"|"enemy") selects BOTH the group's side and the faction's classnames
-// (STCTI_FACTION) — so a side never spawns wearing the other faction's uniform. Caller owns the
-// returned group's lifecycle (createGroup deleteWhenEmpty=false).
-params ["_force", "_ownerKey", "_center", ["_scatter", 30]];
+// fn_spawnForce.sqf — [SERVER] params: [_force, _ownerKey, _centre, _scatter, _heading, _layoutId] -> Group
+// Instantiates an abstract force (HashMap resolverType -> count) as live units of _ownerKey's side.
+// If a non-empty _layoutId is given, the composition is placed into that layout's SLOTS (vehicles,
+// statics, infantry posts at their authored positions/facings — sector-layout-spec §2.3), matching
+// each slot's resolverType; anything left over (or with no layout, e.g. an assault force or a town's
+// building garrison) scatters on land near _centre. Every spawned principal is tagged with
+// STCTI_type and recorded in the group's STCTI_entities for recount/despawn. Caller owns lifecycle.
+params ["_force", "_ownerKey", "_centre", ["_scatter", 30], ["_heading", 0], ["_layoutId", ""]];
 if (!isServer) exitWith { grpNull };
 
-private _side    = if (_ownerKey isEqualTo "player") then { STCTI_SIDE_PLAYER } else { STCTI_SIDE_ENEMY };
-private _classes = STCTI_FACTION getOrDefault [_ownerKey, STCTI_FACTION get "enemy"];
+private _side = if (_ownerKey isEqualTo "player") then { STCTI_SIDE_PLAYER } else { STCTI_SIDE_ENEMY };
+private _grp  = createGroup [_side, false];
+private _ents = [];
+private _work = +_force;   // mutable copy — never mutate the caller's defenderForce
 
-private _grp = createGroup [_side, false];
-{
-    private _type = _x;
-    private _cls  = _classes getOrDefault [_type, "O_Soldier_F"];
-    private _init = format ["this setVariable ['STCTI_type', '%1', false];", _type];
-    for "_i" from 1 to _y do {
-        // Sample a LAND position near _center — coastal sectors (Kavala etc.) were spawning units
-        // in the sea. Fall back to _center if every sample is water (won't happen near a land sector).
-        private _p = _center;
-        for "_try" from 1 to 12 do {
-            private _cand = _center getPos [random (_scatter max 10), random 360];
-            if !(surfaceIsWater _cand) exitWith { _p = _cand; };
+// 1) Slot placement (skip the empty town layout).
+if (_layoutId != "" && {_layoutId != "town_light"}) then {
+    {
+        _x params ["_role", "_wpos", "_wdir"];
+        (STCTI_ROLES getOrDefault [_role, ["infantry", ""]]) params ["_kind", "_rtype"];
+        if (_rtype != "" && {(_work getOrDefault [_rtype, 0]) > 0}) then {
+            private _e = [_rtype, _kind, _role, _wpos, _wdir, _grp, _ownerKey] call STCTI_fnc_spawnUnit;
+            if (!isNull _e) then { _ents pushBack _e; };
+            _work set [_rtype, (_work get _rtype) - 1];
         };
-        _cls createUnit [_p, _grp, _init, 0.6, "PRIVATE"];
-    };
-} forEach _force;
+    } forEach ([_centre, _heading, _layoutId] call STCTI_fnc_layoutToWorld);
+};
 
+// 2) Leftover composition (types with no matching slot, or no layout at all) -> scatter on land.
+{
+    private _rtype = _x;
+    private _n     = _y;
+    if (_n > 0) then {
+        private _cat  = [_rtype, "category"] call STCTI_fnc_unitAttr;     // infantry | armor | air
+        private _kind = if (_cat in ["armor", "air"]) then { "vehicle" } else { "infantry" };
+        for "_i" from 1 to _n do {
+            private _p = _centre;
+            for "_try" from 1 to 12 do {
+                private _c = _centre getPos [random (_scatter max 10), random 360];
+                if !(surfaceIsWater _c) exitWith { _p = _c; };
+            };
+            private _e = [_rtype, _kind, "", _p, random 360, _grp, _ownerKey] call STCTI_fnc_spawnUnit;
+            if (!isNull _e) then { _ents pushBack _e; };
+        };
+    };
+} forEach _work;
+
+_grp setVariable ["STCTI_entities", _ents];
 _grp

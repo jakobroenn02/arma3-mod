@@ -69,6 +69,8 @@ class CfgFunctions {
             class forceCount {};
             class countSpawnedUnits {};
             class offloadGroup {};
+            class spawnUnit {};
+            class despawnGroup {};
             class spawnForce {};
             class recountForce {};
             class spawnGarrison {};

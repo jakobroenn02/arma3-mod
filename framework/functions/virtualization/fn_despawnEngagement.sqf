@@ -10,7 +10,7 @@ if !(_eng get "spawned") exitWith {};
 (_eng get "groups") params [["_attGrp", grpNull], ["_defGrp", grpNull]];
 _eng set ["attacker", [_attGrp] call STCTI_fnc_recountForce];
 _eng set ["defender", [_defGrp] call STCTI_fnc_recountForce];
-{ if (!isNull _x) then { { deleteVehicle _x } forEach units _x; deleteGroup _x; }; } forEach [_attGrp, _defGrp];
+{ [_x] call STCTI_fnc_despawnGroup; } forEach [_attGrp, _defGrp];
 
 _eng set ["groups", []];
 _eng set ["spawned", false];
