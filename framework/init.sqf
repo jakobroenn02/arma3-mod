@@ -10,6 +10,21 @@ if (isNil "CBA_fnc_addPerFrameHandler") then {
     if (hasInterface) then { systemChat _msg; };
 };
 
+// --- Optional dependency: LAMBS Danger (advisory, never fatal) ------------------
+// LAMBS Danger (GPLv2; runtime-dependency only — we call it, we don't bundle it) is an
+// OPTIONAL enhancement, treated like ACE per design doc §12. If present it upgrades all AI
+// tactics (cover, suppression, building-clearing, flanking) automatically with no code from
+// us, and its lambs_wp_fnc_task* orders are the intended Phase 5 execution backend (wrapped
+// behind STCTI_fnc_order* with a vanilla fallback — not built yet). If absent, STCTI runs on
+// vanilla AI + vanilla waypoints. These flags let later code branch without re-querying config.
+STCTI_HAS_LAMBS_AI = isClass (configFile >> "CfgPatches" >> "lambs_danger");  // behaviour FSM
+STCTI_HAS_LAMBS_WP = isClass (configFile >> "CfgPatches" >> "lambs_wp");      // task/order functions
+diag_log text (format [
+    "[STCTI] LAMBS Danger: AI tactics %1, order backend %2.",
+    ["absent (vanilla AI)", "active"] select STCTI_HAS_LAMBS_AI,
+    ["absent (vanilla waypoints)", "available"] select STCTI_HAS_LAMBS_WP
+]);
+
 // --- Event names (CBA events) --------------------------------------------------
 STCTI_EV_SECTOR_CAPTURED   = "STCTI_SectorCaptured";    // args: [sectorId, newOwner]
 STCTI_EV_RESOURCES_CHANGED = "STCTI_ResourcesChanged";  // args: [resourcesHashMap]

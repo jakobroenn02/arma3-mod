@@ -257,6 +257,7 @@ Even as SP-first, design server-authoritative:
 ## 12. Tech stack & project layout
 
 - **Dependency:** CBA_A3 (PFH, events, settings). ACE optional. Keep the core CBA-only.
+- **Optional dependency — LAMBS Danger** (GPLv2 + amendments; **runtime dependency only, never bundled**). Treated exactly like ACE: detected at runtime (`STCTI_HAS_LAMBS_AI` / `STCTI_HAS_LAMBS_WP` in `init.sqf`), degrades gracefully to vanilla when absent. Two distinct uses: (1) its danger FSM upgrades **all** AI tactics automatically with zero code from us (cover, suppression, building-clearing, flanking); (2) its `lambs_wp_fnc_task*` orders (Assault/Patrol/Garrison/Creep/Retreat) are the intended **Phase 5 order-execution backend**, to be wrapped behind a thin `STCTI_fnc_order*` API with a vanilla-waypoint fallback so the core stays CBA-only and uncoupled. Licensing: *calling* its functions does not make our code derivative (per its amendments); *repackaging* it into `@stcti` would pull GPLv2 distribution obligations onto our release — defer that to a deliberate Phase 7/8 distribution decision, if ever.
 - **Function library:** `CfgFunctions` under tag `STCTI` → `STCTI_fnc_economyTick`, `STCTI_fnc_sectorCapture`, …
 
 ```
@@ -314,12 +315,14 @@ Ordered to **de-risk the two things that kill projects like this** (is it fun? d
 **Do:** aggression model; combined-arms task-force assembly; jittered scheduling with warnings + cooldown; escalation tiers (infantry → armor → air/UAV).
 **Exit:** enemy is passive by default, mounts believable telegraphed operations, fully tunable.
 **Risk:** medium — long tail of **balance** tuning.
+**LAMBS note:** the optional LAMBS dependency (§12) buys the *tactical* half for free — squads fight with cover/suppression/flanking once engaged — so Phase 4 narrows to the **operational brain only**: deciding *when/where/what force* to commit. Don't reimplement squad tactics. Caveat: smarter live AI shifts balance, and it changes the `K` calibration target (calibrate the resolver's pace against LAMBS-driven live fights, not vanilla).
 
 ### Phase 5 — High Command planning layer
 **Goal:** strategic command from the table.
 **Do:** register player groups into vanilla HC; build the table dialog; implement order types (patrol, staged attack, supply run, air support).
 **Exit:** player directs map-wide AI from the table; orders compile to working waypoints/tasks.
 **Risk:** medium (custom UI is fiddly).
+**LAMBS note:** LAMBS provides the order *execution backend* (`lambs_wp_fnc_task*` ≈ patrol/assault/garrison/creep/retreat). Phase 5 = the HC **table UI + order compiler** that targets a thin `STCTI_fnc_order*` abstraction (LAMBS if `STCTI_HAS_LAMBS_WP`, else vanilla waypoints). The command interface is still ours to build; LAMBS only shrinks the execution layer.
 
 ### Phase 6 — Persistence
 **Goal:** campaigns survive restarts.
