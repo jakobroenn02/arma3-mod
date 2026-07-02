@@ -44,6 +44,13 @@ The full loop is in: **capture → income → spend → defend → command**, pe
 - **Phase 12 — sustainment** — holding any military site grants periodic **intel** (enemy map
   dots annotated with garrison strength); the garage services owned vehicles
   (repair/refuel/rearm for resources).
+- **The front** — capture only progresses in sectors **adjacent to friendly territory** (or the
+  HQ beachhead); out-of-reach sectors render faded. Income only flows from sectors **supplied**
+  through an owned chain back to the HQ — cut the chain, starve the rest (works both ways).
+  Enemy garrisons **entrench over time** where nobody is watching; enemy **supply convoys** run
+  near the front and can be ambushed (loot + the destination garrison goes without — intact
+  trucks can be captured). Respawn at base costs manpower; hold **every** sector to win.
+  Artillery **fire missions** (HC board) soften a sector for money+ammo — big ops shell you back.
 
 ### Vehicle garage (Antistasi-style)
 
