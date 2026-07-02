@@ -1,9 +1,9 @@
 // fn_spawnUnit.sqf — [SERVER] params: [_rtype, _kind, _role, _pos, _dir, _grp, _ownerKey] -> Object
 // Spawns ONE garrison entity of the given spawn kind and tags it with STCTI_type (= resolverType)
 // so the budget meter and recount see it. Returns the principal tagged object (the man, the
-// vehicle, or the static — NOT crew). Vehicles are crewed and their crew folded into _grp; statics
-// spawn unmanned for now (they still count in the resolver — sector-layout-spec §7). Faction classes
-// come from STCTI_FACTION (men/vehicles, by resolverType) and STCTI_STATIC_CLASS (statics, by role).
+// vehicle, or the static — NOT crew). Vehicles and statics are crewed, their crew folded into
+// _grp (sector-layout-spec §7). Faction classes come from STCTI_FACTION (men/vehicles, by
+// resolverType) and STCTI_STATIC_CLASS (statics, by role).
 params ["_rtype", "_kind", "_role", "_pos", "_dir", "_grp", "_ownerKey"];
 
 private _facMap = STCTI_FACTION getOrDefault [_ownerKey, STCTI_FACTION get "enemy"];
@@ -25,7 +25,12 @@ switch (_kind) do {
             _ent = createVehicle [_scls, _pos, [], 0, "NONE"];
             _ent setDir _dir;
             _ent setPosATL [_pos select 0, _pos select 1, 0];
-            // TODO: man the static from _grp (follow-up; unmanned still counts in the resolver).
+            // Manned like the vehicle case (garrison statics fight, Antistasi-style): config
+            // crew folded into the garrison group. Crew is untagged, so the resolver/budget
+            // still count only the static itself, and despawnGroup deletes crew with the group.
+            private _crewGrp = createVehicleCrew _ent;
+            { [_x] joinSilent _grp; } forEach units _crewGrp;
+            deleteGroup _crewGrp;
         };
     };
     default {   // infantry

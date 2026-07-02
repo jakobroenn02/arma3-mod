@@ -15,6 +15,7 @@ private _rec = createHashMapFromArray [
     ["income", createHashMapFromArray _income],
     ["heading", _heading], ["layout", _layoutId], ["grantsUnlock", _grantsUnlock],
     ["defenderForce", _comp],
+    ["hardening", []],   // player-built static slots [role, worldPos, dir] — see fn_serverPlaceStatic
     ["garrison", []], ["garrisonGroup", grpNull], ["spawned", false]
 ];
 (STCTI_state get "sectors") set [_id, _rec];

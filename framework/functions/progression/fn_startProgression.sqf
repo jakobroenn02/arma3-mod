@@ -14,6 +14,7 @@ if (isNil "STCTI_unlocks") then { STCTI_unlocks = []; };
 
     STCTI_unlocks pushBack _unlock;
     [STCTI_EV_UNLOCKS_CHANGED, [STCTI_unlocks, _unlock]] call CBA_fnc_globalEvent;
+    call STCTI_fnc_updateArsenal;   // new unlock may add an arsenal tier
     diag_log format ["[STCTI] Unlock granted: %1 (captured %2).", _unlock, _id];
 }] call CBA_fnc_addEventHandler;
 

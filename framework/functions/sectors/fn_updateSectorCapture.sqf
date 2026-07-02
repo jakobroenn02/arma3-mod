@@ -45,7 +45,17 @@ switch (true) do {
             [_id] call STCTI_fnc_updateSectorMarker;
         };
     };
+    // Enemy alone in a player sector: retake — progress drains at the capture rate; at 0 it
+    // flips (design §15 resolved Antistasi-style: occupiers take ground; defending stops the
+    // drain via the contested case above). Only stray LIVE enemies matter here — organized
+    // assaults flip through checkBreak / resolveSpawnedEngagement. The pre-filter above pauses
+    // the drain when every player is >100m outside the radius; that's intended, since with no
+    // player nearby the fight belongs to the resolver, not to presence ticks.
+    case (_enemyNear && {(_rec get "owner") isEqualTo "player"}): {
+        private _p = (_progress - STCTI_CAPTURE_RATE) max 0;
+        _rec set ["captureProgress", _p];
+        if (_p <= 0) then { [_id, "enemy"] call STCTI_fnc_setSectorOwner; };
+    };
     // Nobody contesting an enemy sector: progress decays back.
     default { call _decay };
 };
-// TODO (later): enemy retake when only enemy present — open question in design doc §15.

@@ -9,6 +9,7 @@ if ((_rec get "owner") isEqualTo _owner) exitWith {};
 
 _rec set ["owner", _owner];
 _rec set ["captureProgress", if (_owner isEqualTo "player") then {1} else {0}];
+_rec set ["hardening", []];   // player-built statics don't change hands — the new owner starts clean
 
 // Ownership changed: drop the previous owner's live garrison so the virtualization manager
 // re-spawns the NEW owner's garrison (from defenderForce) on its next tick.

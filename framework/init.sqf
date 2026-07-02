@@ -31,20 +31,28 @@ STCTI_EV_RESOURCES_CHANGED = "STCTI_ResourcesChanged";  // args: [resourcesHashM
 STCTI_EV_ATTACK_INBOUND    = "STCTI_AttackInbound";     // args: [sectorId]
 STCTI_EV_ENGAGEMENT_RESOLVED = "STCTI_EngagementResolved"; // args: [sectorId, routedSide, attackerForce, defenderForce, startA, startD, attackerOwner, defenderOwner]
 STCTI_EV_UNLOCKS_CHANGED     = "STCTI_UnlocksChanged";     // args: [unlocksArray, newlyUnlockedId]
+STCTI_EV_GARAGE_CHANGED      = "STCTI_GarageChanged";      // args: [storedClassnamesArray]
 
 // --- Progression: unlocks + garage catalog -------------------------------------
 // STCTI_unlocks is the server-authoritative list of granted unlock ids, broadcast to clients
 // (UNLOCKS_CHANGED) so the garage can gate on it. Capturing a sector grants its grantsUnlock.
 STCTI_unlocks = [];
-// Garage catalog: [label, classname, price, requiredUnlock ("" = always). Player-faction classes
-// for now; faction selection makes this faction-aware later. NOTE: name must NOT collide with the
-// garage flag object STCTI_garage — SQF variable names are case-insensitive, so STCTI_GARAGE and
-// STCTI_garage would be the same variable. Hence STCTI_garageCatalog.
-STCTI_garageCatalog = [
-    ["Buy Hunter HMG (500)",    "B_MRAP_01_hmg_F",                 500,  ""],
-    ["Buy Marshall IFV (1500)", "B_APC_Wheeled_01_cannon_F",       1500, ""],
-    ["Buy Wipeout CAS (6000)",  "B_Plane_CAS_01_dynamicLoadout_F", 6000, "fixed_wing"]
+// Garage catalog TEMPLATE: [role, price, requiredUnlock ("" = always), fuelCost]. Roles resolve
+// to the chosen faction's classes — the concrete STCTI_garageCatalog ([label, class, price,
+// unlock, fuel]) is derived below once STCTI_FACTION_POOL exists, and re-derived by
+// fn_applyFaction when the player picks a faction at campaign setup. Vehicles cost money + fuel
+// (design §resources). NOTE: catalog name must NOT collide with the garage flag object
+// STCTI_garage — SQF variable names are case-insensitive. Hence STCTI_garageCatalog.
+STCTI_garageCatalogTemplate = [
+    ["mrap",    500,  "",           50],
+    ["ifv",     1500, "",           150],
+    ["jet_cas", 6000, "fixed_wing", 400]
 ];
+// How far from the garage flag a purchase may be placed. The placement ghost clamps to
+// this on the client; the server enforces it (with slack) in fn_serverPurchase.
+STCTI_GARAGE_RADIUS = 50;
+// Client cache of the server's stored-vehicle list (GARAGE_CHANGED pushes; garage menu reads).
+STCTI_lastStored = [];
 
 // --- Tunables (slice values — tune by feel) ------------------------------------
 STCTI_ECONOMY_INTERVAL = 60;    // economy tick seconds
@@ -53,6 +61,17 @@ STCTI_CAPTURE_RATE     = 0.10;  // capture progress per check when uncontested
 STCTI_ATTACK_MIN       = 600;   // min seconds between enemy attacks
 STCTI_ATTACK_MAX       = 900;   // max seconds
 STCTI_ATTACK_WARNING   = 60;    // warning lead time
+// Reinforce garrison (design §sector-actions): money + manpower buys extra riflemen for the
+// sector you are standing in (fn_serverReinforce).
+STCTI_REINFORCE_COST   = [["money", 250], ["manpower", 5]];
+STCTI_REINFORCE_SIZE   = 5;     // riflemen added per reinforcement
+// Build static turret (design §sector-actions): money + ammo places a manned static where the
+// player stands, remembered as a sector "hardening" slot (fn_serverPlaceStatic).
+STCTI_STATIC_COST = createHashMapFromArray [
+    ["static_he", [["money", 200], ["ammo", 50]]],
+    ["static_at", [["money", 400], ["ammo", 100]]],
+    ["static_aa", [["money", 400], ["ammo", 100]]]
+];
 
 // --- Abstract combat resolver (Phase 2) — see abstract-combat-resolution-spec.md §8.
 // Master pace dial is K; calibrate it against live fights before tuning anything else.
@@ -93,29 +112,74 @@ STCTI_SPAWN_BUDGET    = 60;     // max framework-spawned AI units alive at once 
                                 // Observed forces beyond this stay abstract/data until budget frees,
                                 // spawned in priority order (active fights first, then nearest garrisons).
 
-// Faction map: owner ("player"/"enemy") -> (resolverType -> real classname). Side-aware so a force
-// never spawns wearing the other faction's uniform, and keyed by the same CfgSTCTIUnitTypes ids the
-// resolver uses, so a layout slot's resolverType resolves straight to a class. Phase 3 expands to
-// AAF / per-faction selection (sector-layout-spec §1.3).
-STCTI_FACTION = createHashMapFromArray [
-    ["player", createHashMapFromArray [   // NATO
-        ["rifleman", "B_Soldier_F"], ["at_team", "B_soldier_AT_F"], ["aa_team", "B_soldier_AA_F"],
-        ["mrap", "B_MRAP_01_hmg_F"], ["ifv", "B_APC_Wheeled_01_cannon_F"], ["mbt", "B_MBT_01_cannon_F"],
-        ["uav_armed", "B_UAV_02_dynamicLoadout_F"], ["heli_atk", "B_Heli_Attack_01_dynamicLoadout_F"], ["jet_cas", "B_Plane_CAS_01_dynamicLoadout_F"]
+// Faction pool (Phase 3, design §faction-abstraction): every native faction as one datum —
+// role->class unit map (keyed by CfgSTCTIUnitTypes ids, so a layout slot's resolverType resolves
+// straight to a class), role->class statics map, garage flag, and its default opponent. The
+// campaign-setup faction pick (fn_applyFaction) populates STCTI_FACTION / STCTI_STATIC_CLASS /
+// STCTI_garageCatalog from this. DELIBERATE spec deviation: engine sides stay fixed
+// (player=west, enemy=east) regardless of faction — the mission.sqm player unit is WEST, and
+// units joined into framework groups take the group's side anyway, so swapping CLASSES alone
+// gives faction selection without any side-relation surgery.
+STCTI_FACTION_POOL = createHashMapFromArray [
+    ["NATO", createHashMapFromArray [
+        ["enemy", "CSAT"], ["flag", "Flag_NATO_F"],
+        ["units", createHashMapFromArray [
+            ["rifleman", "B_Soldier_F"], ["at_team", "B_soldier_AT_F"], ["aa_team", "B_soldier_AA_F"],
+            ["mrap", "B_MRAP_01_hmg_F"], ["ifv", "B_APC_Wheeled_01_cannon_F"], ["mbt", "B_MBT_01_cannon_F"],
+            ["uav_armed", "B_UAV_02_dynamicLoadout_F"], ["heli_atk", "B_Heli_Attack_01_dynamicLoadout_F"], ["jet_cas", "B_Plane_CAS_01_dynamicLoadout_F"]
+        ]],
+        ["statics", createHashMapFromArray [["static_he", "B_HMG_01_high_F"], ["static_at", "B_static_AT_F"], ["static_aa", "B_static_AA_F"]]],
+        // Arsenal tiers: unlockId ("" = from the start) -> unit classes whose config gear gets
+        // whitelisted into the base arsenal (fn_updateArsenal).
+        ["arsenalUnits", createHashMapFromArray [
+            ["",           ["B_Soldier_F", "B_soldier_AR_F", "B_medic_F", "B_soldier_AT_F", "B_soldier_AA_F"]],
+            ["fixed_wing", ["B_Pilot_F", "B_Heli_Pilot_F"]]
+        ]]
     ]],
-    ["enemy", createHashMapFromArray [    // CSAT
-        ["rifleman", "O_Soldier_F"], ["at_team", "O_Soldier_AT_F"], ["aa_team", "O_Soldier_AA_F"],
-        ["mrap", "O_MRAP_02_hmg_F"], ["ifv", "O_APC_Wheeled_02_rcws_v2_F"], ["mbt", "O_MBT_02_cannon_F"],
-        ["uav_armed", "O_UAV_02_dynamicLoadout_F"], ["heli_atk", "O_Heli_Attack_02_dynamicLoadout_F"], ["jet_cas", "O_Plane_CAS_02_dynamicLoadout_F"]
+    ["CSAT", createHashMapFromArray [
+        ["enemy", "NATO"], ["flag", "Flag_CSAT_F"],
+        ["units", createHashMapFromArray [
+            ["rifleman", "O_Soldier_F"], ["at_team", "O_Soldier_AT_F"], ["aa_team", "O_Soldier_AA_F"],
+            ["mrap", "O_MRAP_02_hmg_F"], ["ifv", "O_APC_Wheeled_02_rcws_v2_F"], ["mbt", "O_MBT_02_cannon_F"],
+            ["uav_armed", "O_UAV_02_dynamicLoadout_F"], ["heli_atk", "O_Heli_Attack_02_dynamicLoadout_F"], ["jet_cas", "O_Plane_CAS_02_dynamicLoadout_F"]
+        ]],
+        ["statics", createHashMapFromArray [["static_he", "O_HMG_01_high_F"], ["static_at", "O_static_AT_F"], ["static_aa", "O_static_AA_F"]]],
+        ["arsenalUnits", createHashMapFromArray [
+            ["",           ["O_Soldier_F", "O_Soldier_AR_F", "O_medic_F", "O_Soldier_AT_F", "O_Soldier_AA_F"]],
+            ["fixed_wing", ["O_Pilot_F", "O_helipilot_F"]]
+        ]]
+    ]],
+    ["AAF", createHashMapFromArray [
+        ["enemy", "CSAT"], ["flag", "Flag_AAF_F"],
+        ["units", createHashMapFromArray [
+            ["rifleman", "I_Soldier_F"], ["at_team", "I_Soldier_AT_F"], ["aa_team", "I_Soldier_AA_F"],
+            ["mrap", "I_MRAP_03_hmg_F"], ["ifv", "I_APC_Wheeled_03_cannon_F"], ["mbt", "I_MBT_03_cannon_F"],
+            // AAF has no attack helicopter — armed Hellcat is its closest native equivalent (v1
+            // native-factions-only rule, design §1).
+            ["uav_armed", "I_UAV_02_dynamicLoadout_F"], ["heli_atk", "I_Heli_light_03_dynamicLoadout_F"], ["jet_cas", "I_Plane_Fighter_03_dynamicLoadout_F"]
+        ]],
+        ["statics", createHashMapFromArray [["static_he", "I_HMG_01_high_F"], ["static_at", "I_static_AT_F"], ["static_aa", "I_static_AA_F"]]],
+        ["arsenalUnits", createHashMapFromArray [
+            ["",           ["I_soldier_F", "I_Soldier_AR_F", "I_medic_F", "I_Soldier_AT_F", "I_Soldier_AA_F"]],
+            ["fixed_wing", ["I_pilot_F", "I_helipilot_F"]]
+        ]]
     ]]
 ];
 
-// Side-aware static-weapon classes (a static is an object, not a man, so it needs its own map).
-// Keyed by role (sector-layout-spec §1.3). Phase 3 expands per faction.
-STCTI_STATIC_CLASS = createHashMapFromArray [
-    ["player", createHashMapFromArray [["static_he", "B_HMG_01_high_F"], ["static_at", "B_static_AT_F"], ["static_aa", "B_static_AA_F"]]],
-    ["enemy",  createHashMapFromArray [["static_he", "O_HMG_01_high_F"], ["static_at", "O_static_AT_F"], ["static_aa", "O_static_AA_F"]]]
-];
+// Faction defaults (NATO vs CSAT) so everything works before the campaign-setup pick lands;
+// fn_applyFaction re-derives exactly these (and broadcasts) from the chosen faction.
+private _pf = STCTI_FACTION_POOL get "NATO";
+private _ef = STCTI_FACTION_POOL get "CSAT";
+STCTI_PLAYER_FACTION = "NATO";
+STCTI_PLAYER_FLAG    = _pf get "flag";
+STCTI_FACTION      = createHashMapFromArray [["player", _pf get "units"], ["enemy", _ef get "units"]];
+STCTI_STATIC_CLASS = createHashMapFromArray [["player", _pf get "statics"], ["enemy", _ef get "statics"]];
+STCTI_garageCatalog = STCTI_garageCatalogTemplate apply {
+    _x params ["_role", "_price", "_unlock", "_fuel"];
+    private _cls = (_pf get "units") get _role;
+    [format ["Buy %1 — $%2 + %3 fuel", getText (configFile >> "CfgVehicles" >> _cls >> "displayName"), _price, _fuel],
+     _cls, _price, _unlock, _fuel]
+};
 
 // --- Sector layouts (sector-layout-spec) ---------------------------------------
 // Role -> [spawnKind, resolverType]. spawnKind: "infantry"|"vehicle"|"static". resolverType is the

@@ -21,7 +21,7 @@ private _r        = _rec get "radius";
 private _heading  = _rec getOrDefault ["heading", 0];
 private _layout   = _rec getOrDefault ["layout", "town_light"];
 
-private _grp = [_force, _ownerKey, _pos, _r * 0.6, _heading, _layout] call STCTI_fnc_spawnForce;
+private _grp = [_force, _ownerKey, _pos, _r * 0.6, _heading, _layout, _rec getOrDefault ["hardening", []]] call STCTI_fnc_spawnForce;
 _grp setBehaviour "AWARE";
 _grp setCombatMode "YELLOW";
 

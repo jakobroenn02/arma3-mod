@@ -40,11 +40,66 @@ call STCTI_fnc_initHUD;
     [_tpl, [_msg]] call BIS_fnc_showNotification;
 }] call CBA_fnc_addEventHandler;
 
-// Garage action (E3): one action on the flag opens the garage dialog (fn_garageMenu), which lists
-// the unlocked catalog and starts ghost placement on "Place".
+// Garage actions (E3): the flag opens the garage dialog (fn_garageMenu) — buy + take out —
+// and stores the nearest empty owned vehicle back into the garage.
 [{ !isNil "STCTI_garage" && {!isNull STCTI_garage} }, {
-    STCTI_garage addAction ["<t color='#7ec8ff'>Vehicle Garage</t>", { call STCTI_fnc_garageMenu; }, nil, 1.5, false, true, "", "true"];
+    STCTI_garage addAction ["<t color='#7ec8ff'>Vehicle Garage</t>", { call STCTI_fnc_garageMenu; }, nil, 1.5, false, true, "", "true", 15];
+    STCTI_garage addAction ["<t color='#9affa0'>Store nearby vehicle</t>", {
+        private _near = (getPosATL STCTI_garage) nearEntities [["Car", "Tank", "Air", "Ship"], STCTI_GARAGE_RADIUS];
+        private _owned = _near select { _x getVariable ["STCTI_owned", false] && {alive _x} && {crew _x isEqualTo []} };
+        if (_owned isEqualTo []) exitWith { systemChat "STCTI: no empty owned vehicle near the garage."; };
+        [_owned select 0] call STCTI_fnc_requestStore;
+    }, nil, 1.4, false, true, "", "true", 15];
 }] call CBA_fnc_waitUntilAndExecute;
+
+// Stored-vehicle list: keep the local cache fresh for the garage menu.
+[STCTI_EV_GARAGE_CHANGED, { params ["_stored"]; STCTI_lastStored = _stored; }] call CBA_fnc_addEventHandler;
+
+// Reinforce-garrison action: shown only while standing inside a sector the players hold.
+// Clients have no STCTI_state, but the sector markers are global and sized to the capture
+// radius, so "inside an owned sector" is derivable from marker colour + position alone.
+STCTI_localOwnedSector = {
+    private _ret = "";
+    {
+        if (markerColor _x isEqualTo "ColorBLUFOR" && {player distance2D markerPos _x <= (markerSize _x select 0)}) exitWith {
+            _ret = _x select [3];   // marker is "mk_" + sectorId
+        };
+    } forEach (allMapMarkers select { _x select [0, 3] isEqualTo "mk_" && {!("_dot" in _x)} });
+    _ret
+};
+player addAction [
+    format ["<t color='#9affa0'>Reinforce garrison (%1)</t>",
+        (STCTI_REINFORCE_COST apply { format ["%2 %1", _x select 0, _x select 1] }) joinString " + "],
+    {
+        private _id = call STCTI_localOwnedSector;
+        if (_id isEqualTo "") exitWith {};
+        [_id, clientOwner] remoteExec ["STCTI_fnc_serverReinforce", 2]; // 2 = server (validates + charges)
+    },
+    nil, 1.2, false, true, "", "(call STCTI_localOwnedSector) != ''"
+];
+
+// Build-static actions (one per type): placed where the player stands, facing their heading.
+{
+    _x params ["_role", "_label"];
+    private _cost = STCTI_STATIC_COST get _role;
+    player addAction [
+        format ["<t color='#9affa0'>Build %1 (%2)</t>", _label,
+            (_cost apply { format ["%2 %1", _x select 0, _x select 1] }) joinString " + "],
+        {
+            params ["", "", "", "_role"];
+            private _id = call STCTI_localOwnedSector;
+            if (_id isEqualTo "") exitWith {};
+            private _p = getPosATL player getPos [3, getDir player];
+            [_id, _role, [_p select 0, _p select 1, 0], getDir player, clientOwner]
+                remoteExec ["STCTI_fnc_serverPlaceStatic", 2]; // 2 = server (validates + charges)
+        },
+        _role, 1.1, false, true, "", "(call STCTI_localOwnedSector) != ''"
+    ];
+} forEach [
+    ["static_he", "HMG emplacement"],
+    ["static_at", "AT emplacement"],
+    ["static_aa", "AA emplacement"]
+];
 
 // Unlock changes: refresh the local unlock set (garage conditions read it) and notify.
 [STCTI_EV_UNLOCKS_CHANGED, {
@@ -53,9 +108,10 @@ call STCTI_fnc_initHUD;
     if (_new != "") then { ["STCTI_Info", [format ["New unlock: %1", _new]]] call BIS_fnc_showNotification; };
 }] call CBA_fnc_addEventHandler;
 
-// Push current resources to this (joining) client once.
+// Push current resources + garage contents to this (joining) client once.
 if (isServer) then {
     [STCTI_EV_RESOURCES_CHANGED, [STCTI_state get "resources"]] call CBA_fnc_globalEvent;
+    [STCTI_EV_GARAGE_CHANGED, [+(STCTI_state get "storedVehicles")]] call CBA_fnc_globalEvent;
 };
 
 // Campaign start: pick a starting base (first player) or deploy to the established one.

@@ -44,12 +44,25 @@ _panel ctrlCommit 0;
 // Title.
 private _title = _dlg ctrlCreate ["RscStructuredText", -1];
 _title ctrlSetPosition [_px + 0.01*safezoneW, _py + 0.01*safezoneH, _panelW - 0.02*safezoneW, 0.06*safezoneH];
-_title ctrlSetStructuredText parseText "<t size='1.4' shadow='1'>Establish your base of operations</t><br/><t size='0.9' color='#aaaaaa'>Choose where the campaign begins.</t>";
+_title ctrlSetStructuredText parseText "<t size='1.4' shadow='1'>Establish your base of operations</t><br/><t size='0.9' color='#aaaaaa'>Choose your faction and where the campaign begins.</t>";
 _title ctrlCommit 0;
+
+// Faction picker (Phase 3): label + combo over the STCTI_FACTION_POOL keys. The pick rides
+// along with the base choice to fn_serverPlaceBase, which applies it campaign-wide.
+private _fLabel = _dlg ctrlCreate ["RscText", -1];
+_fLabel ctrlSetPosition [_px + 0.01*safezoneW, _py + 0.085*safezoneH, 0.07*safezoneW, 0.04*safezoneH];
+_fLabel ctrlSetText "Faction:";
+_fLabel ctrlCommit 0;
+
+private _fCombo = _dlg ctrlCreate ["RscCombo", 8802];
+_fCombo ctrlSetPosition [_px + 0.08*safezoneW, _py + 0.085*safezoneH, _panelW - 0.09*safezoneW, 0.04*safezoneH];
+_fCombo ctrlCommit 0;
+{ _fCombo lbAdd _x; } forEach ["NATO", "CSAT", "AAF"];
+_fCombo lbSetCurSel 0;
 
 // Zone listbox.
 private _lb = _dlg ctrlCreate ["RscListBox", 8801];
-_lb ctrlSetPosition [_px + 0.01*safezoneW, _py + 0.09*safezoneH, _panelW - 0.02*safezoneW, _panelH - 0.18*safezoneH];
+_lb ctrlSetPosition [_px + 0.01*safezoneW, _py + 0.14*safezoneH, _panelW - 0.02*safezoneW, _panelH - 0.23*safezoneH];
 _lb ctrlCommit 0;
 { _lb lbAdd (_x select 0); } forEach STCTI_START_BASES;
 _lb lbSetCurSel 0;
@@ -64,6 +77,8 @@ _btn ctrlAddEventHandler ["ButtonClick", {
     private _d = ctrlParent _ctrl;
     private _sel = lbCurSel (_d displayCtrl 8801);
     if (_sel < 0) exitWith {};
+    private _fCombo  = _d displayCtrl 8802;
+    private _faction = _fCombo lbText (lbCurSel _fCombo max 0);
     _d closeDisplay 1;
-    [_sel, player] remoteExec ["STCTI_fnc_serverPlaceBase", 2];
+    [_sel, _faction, player] remoteExec ["STCTI_fnc_serverPlaceBase", 2];
 }];

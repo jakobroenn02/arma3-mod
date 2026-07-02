@@ -6,7 +6,8 @@ STCTI_state = createHashMapFromArray [
     ["resources", createHashMapFromArray [
         ["money", 5000], ["manpower", 50], ["fuel", 2000], ["ammo", 2000]
     ]],
-    ["sectors", createHashMap]   // sectorId -> sector record
+    ["sectors", createHashMap],      // sectorId -> sector record
+    ["storedVehicles", []]           // player vehicles parked in the garage: [class, hitPoints, fuel]
 ];
 
 // Active abstract-combat engagements: sectorId -> engagement record (resolver §2).

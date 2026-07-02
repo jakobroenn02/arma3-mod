@@ -4,6 +4,10 @@ params ["_res"];
 if (!hasInterface) exitWith {};
 disableSerialization;
 
+// Cache the latest server push so other UI (garage menu) can read current balances
+// without asking the server. Nil until the first RESOURCES_CHANGED arrives.
+STCTI_lastRes = _res;
+
 private _ctrl = uiNamespace getVariable ["STCTI_hud", controlNull];
 if (isNull _ctrl) exitWith {};
 

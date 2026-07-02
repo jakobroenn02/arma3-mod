@@ -22,6 +22,8 @@ class CfgFunctions {
             class addRes {};
             class canAfford {};
             class spend {};
+            class spendMulti {};
+            class applyFaction {};
             class startManagers {};
             class serverPlaceBase {};
             class deployPlayer {};
@@ -34,12 +36,18 @@ class CfgFunctions {
             class updateSectorCapture {};
             class initSectors {};
             class isSectorObserved {};
+            class serverReinforce {};
+            class serverPlaceStatic {};
         };
         class economy { file = "functions\economy"; class economyTick {}; };
         class garage {
             file = "functions\garage";
             class serverPurchase {};
             class requestPurchase {};
+            class serverStore {};
+            class requestStore {};
+            class serverRetrieve {};
+            class requestRetrieve {};
             class garageMenu {};
             class garagePlace {};
         };
@@ -67,6 +75,7 @@ class CfgFunctions {
         class progression {
             file = "functions\progression";
             class startProgression {};
+            class updateArsenal {};
         };
         class virtualization {
             file = "functions\virtualization";
