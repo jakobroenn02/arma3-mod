@@ -5,9 +5,12 @@
 if (!isServer) exitWith {};
 
 {
-    private _alpha = if ((_y get "owner") isEqualTo "player") then { 0.6 } else {
+    private _alpha = if ((_y get "owner") isEqualTo "player") then {
+        // Owned: bright while supplied, dimmed when the chain to the HQ is cut.
+        [0.3, 0.6] select ([_x] call STCTI_fnc_isSectorSupplied)
+    } else {
         [0.25, 0.85] select ([_x] call STCTI_fnc_isSectorAttackable)
     };
     ("mk_" + _x) setMarkerAlpha _alpha;
-    ("mk_" + _x + "_dot") setMarkerAlpha ([0.4, 1] select (_alpha > 0.25));
+    ("mk_" + _x + "_dot") setMarkerAlpha ([0.4, 1] select (_alpha > 0.3));
 } forEach (STCTI_state get "sectors");

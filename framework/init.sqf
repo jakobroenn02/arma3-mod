@@ -190,7 +190,23 @@ STCTI_ENEMY_GARRISON_CAP     = 14;   // total units an enemy garrison can grow t
 
 // --- Artillery fire mission (HC order) ---------------------------------------------
 STCTI_FIREMISSION_COST   = [["money", 300], ["ammo", 250]];
-STCTI_FIREMISSION_SHELLS = 8;   // 155mm impacts spread over ~35s
+STCTI_FIREMISSION_SHELLS = 8;    // 155mm impacts spread over ~35s
+STCTI_FIREMISSION_AGGRO  = 0.03; // provocation: each fire mission nudges the director
+
+// --- Supply lines (map-physical logistics) ------------------------------------------
+// A player sector only pays income while CONNECTED to the HQ beachhead through owned,
+// adjacent sectors (the front-line graph). Cut the chain and everything beyond it starves —
+// and the same applies to you when the enemy retakes a link. Cut-off sectors render dimmer.
+STCTI_SUPPLY_RULE = true;
+
+// --- Enemy convoys (ambushable logistics) --------------------------------------------
+// When players are near the front, the enemy runs supply convoys between adjacent enemy
+// sectors. Destroy one: loot + the destination garrison weakens. Intact trucks can be driven
+// home and captured into garage stock. One convoy at a time; leftovers clean up after a while.
+STCTI_CONVOY_INTERVAL      = 240;   // min seconds between convoy dispatches
+STCTI_CONVOY_SPAWNRANGE    = 1800;  // a player this close to an endpoint makes a route eligible
+STCTI_CONVOY_LOOT          = [["ammo", 100], ["fuel", 100]];   // credited when a convoy is stopped
+STCTI_CONVOY_GARRISON_LOSS = 2;     // riflemen the destination garrison loses (missed supplies)
 
 // --- Logistics & sustainment (Phase 12 slice) --------------------------------------
 STCTI_INTEL_INTERVAL = 300;   // seconds between enemy-garrison scans (needs an owned military site)

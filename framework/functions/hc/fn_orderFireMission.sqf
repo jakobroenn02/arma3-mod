@@ -25,5 +25,9 @@ for "_i" from 1 to STCTI_FIREMISSION_SHELLS do {
     }, [_pos, _r], 3 + _i * 4 + random 2] call CBA_fnc_waitAndExecute;
 };
 
+// Provocation: shelling gets noticed — the director's aggression creeps up per mission.
+STCTI_state set ["aggression",
+    ((STCTI_state getOrDefault ["aggression", STCTI_AGGRO_START]) + STCTI_FIREMISSION_AGGRO) min STCTI_AGGRO_CAP];
+
 [format ["Fire mission on %1 — splash in 30 seconds, %2 rounds.", _sectorId, STCTI_FIREMISSION_SHELLS]] remoteExec ["hint", _requester];
 diag_log format ["[STCTI] Fire mission on %1 by client %2.", _sectorId, _requester];

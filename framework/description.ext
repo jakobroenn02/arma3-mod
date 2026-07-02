@@ -42,6 +42,7 @@ class CfgFunctions {
             class initSectors {};
             class isSectorObserved {};
             class isSectorAttackable {};
+            class isSectorSupplied {};
             class updateFrontline {};
             class serverReinforce {};
             class serverPlaceStatic {};
@@ -70,6 +71,7 @@ class CfgFunctions {
         class logistics {
             file = "functions\logistics";
             class startIntel {};
+            class startConvoys {};
         };
         class ai { file = "functions\ai"; class launchAttack {}; class directorTick {}; };
         class ui {

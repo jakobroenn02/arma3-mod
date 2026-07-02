@@ -68,6 +68,20 @@ private _id = _target get "id";
         _rec set ["defenderForce", _def];
     };
 
+    // Bigger ops (tier 2+, i.e. rosters with an armor element) open with a live prep barrage
+    // when someone is watching — the enemy has tubes too. Abstract fights skip the fireworks.
+    if (count _roster > 3 && {[_id] call STCTI_fnc_isSectorObserved}) then {
+        private _pos = _rec get "pos";
+        for "_i" from 1 to 4 do {
+            [{
+                params ["_p"];
+                private _t = _p getPos [random 80, random 360];
+                private _sh = createVehicle ["Sh_155mm_AMOS", [_t select 0, _t select 1, 250], [], 0, "CAN_COLLIDE"];
+                _sh setVelocity [0, 0, -220];
+            }, [_pos], _i * 5 + random 3] call CBA_fnc_waitAndExecute;
+        };
+    };
+
     [_id, _att, _def, "enemy", "player"] call STCTI_fnc_beginEngagement;
 }, [_id, _roster], STCTI_ATTACK_WARNING] call CBA_fnc_waitAndExecute;
 true

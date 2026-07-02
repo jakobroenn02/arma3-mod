@@ -10,6 +10,16 @@ if (!isServer) exitWith {};
 // not; -1 means "derive from type", 0/1 are explicit config overrides.
 if (_travelNode < 0) then { _travelNode = parseNumber (_type in ["town", "military"]); };
 
+// Authored positions may be PLACEHOLDER coordinates (towns come from the engine and are
+// always fine) — never register a sector in the water; snap to the nearest land instead.
+if (_type isNotEqualTo "town" && {surfaceIsWater _pos}) then {
+    private _s = [_pos, 0, 600, 5, 0, 0.5, 0] call BIS_fnc_findSafePos;
+    if (count _s >= 2) then {
+        diag_log format ["[STCTI] Sector %1 position was in water — snapped %2 -> %3.", _id, _pos, _s];
+        _pos = [_s select 0, _s select 1, 0];
+    };
+};
+
 private _comp = [_layoutId] call STCTI_fnc_layoutComposition;
 if (count _comp == 0) then { _comp = createHashMapFromArray [["rifleman", STCTI_GARRISON_SIZE]]; };
 
