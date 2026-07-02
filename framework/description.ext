@@ -84,6 +84,17 @@ class CfgFunctions {
             class wipeSave {};
             class startPersistence {};
         };
+        class hc {
+            file = "functions\hc";
+            class hcMenu {};
+            class serverRecruit {};
+            class serverHCOrder {};
+            class orderPatrol {};
+            class orderAttack {};
+            class orderDefend {};
+            class orderSupply {};
+            class orderAirStrike {};
+        };
         class virtualization {
             file = "functions\virtualization";
             class observerPoints {};

@@ -36,6 +36,12 @@ if (isNil "STCTI_baseEstablished") then {
     STCTI_garage setVariable ["STCTI_isGarage", true, true];
     publicVariable "STCTI_garage";
 
+    // High Command table (Phase 5) — a map board beside the garage; clients attach the HC menu.
+    private _hcPos = _garagePos getPos [5, 90];
+    STCTI_hcBoard = createVehicle ["Land_MapBoard_F", _hcPos, [], 0, "CAN_COLLIDE"];
+    STCTI_hcBoard setPosATL [_hcPos select 0, _hcPos select 1, 0];
+    publicVariable "STCTI_hcBoard";
+
     diag_log format ["[STCTI] Base established: %1 at %2", _label, _spawnPos];
 };
 

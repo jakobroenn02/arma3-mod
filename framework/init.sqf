@@ -32,6 +32,7 @@ STCTI_EV_ATTACK_INBOUND    = "STCTI_AttackInbound";     // args: [sectorId]
 STCTI_EV_ENGAGEMENT_RESOLVED = "STCTI_EngagementResolved"; // args: [sectorId, routedSide, attackerForce, defenderForce, startA, startD, attackerOwner, defenderOwner]
 STCTI_EV_UNLOCKS_CHANGED     = "STCTI_UnlocksChanged";     // args: [unlocksArray, newlyUnlockedId]
 STCTI_EV_GARAGE_CHANGED      = "STCTI_GarageChanged";      // args: [storedClassnamesArray]
+STCTI_EV_HC_CHANGED          = "STCTI_HCChanged";          // args: [hcGroupsArray]
 
 // --- Progression: unlocks + garage catalog -------------------------------------
 // STCTI_unlocks is the server-authoritative list of granted unlock ids, broadcast to clients
@@ -53,6 +54,8 @@ STCTI_garageCatalogTemplate = [
 STCTI_GARAGE_RADIUS = 50;
 // Client cache of the server's stored-vehicle list (GARAGE_CHANGED pushes; garage menu reads).
 STCTI_lastStored = [];
+// Client cache of the recruited HC squads (HC_CHANGED pushes; HC menu + vanilla HC bar read).
+STCTI_lastHC = [];
 
 // --- Tunables (slice values — tune by feel) ------------------------------------
 STCTI_ECONOMY_INTERVAL = 60;    // economy tick seconds
@@ -118,6 +121,17 @@ STCTI_AGGRO_DECAY       = 0.02;   // decay per director roll (quiet time)
 STCTI_OP_COOLDOWN       = 900;    // min seconds after an op before the next is even considered
 STCTI_OP_TIMEOUT        = 2700;   // spawned op older than this culminates (attacker withdraws)
 
+// --- High Command (Phase 5, design §5/§7) ----------------------------------------
+// Recruited squads are registered into vanilla HC (Ctrl+Space) AND drivable from the map
+// board's dialog (fn_hcMenu). Orders compile through STCTI_fnc_order* — LAMBS backend when
+// lambs_wp is loaded, vanilla waypoints otherwise.
+STCTI_RECRUIT_COST   = [["money", 300], ["manpower", 4]];
+STCTI_RECRUIT_COMP   = [["rifleman", 3], ["at_team", 1]];   // squad composition (typeId, count)
+STCTI_SUPPLY_COST    = [["money", 200]];                    // truck dispatch cost
+STCTI_SUPPLY_REWARD  = [["ammo", 150], ["fuel", 150]];      // granted when the truck arrives
+STCTI_AIRSTRIKE_COST = [["money", 500], ["fuel", 100], ["ammo", 150]];
+STCTI_AIRSTRIKE_TIME = 180;   // seconds the CAS jet hunts over the target before leaving
+
 // --- Persistence (Phase 6, design §10) ------------------------------------------
 // The campaign spine autosaves to the server profile, keyed by world. Wipe for a fresh
 // campaign from the debug console: `call STCTI_fnc_wipeSave` (then restart the mission).
@@ -147,7 +161,7 @@ STCTI_SPAWN_BUDGET    = 60;     // max framework-spawned AI units alive at once 
 // gives faction selection without any side-relation surgery.
 STCTI_FACTION_POOL = createHashMapFromArray [
     ["NATO", createHashMapFromArray [
-        ["enemy", "CSAT"], ["flag", "Flag_NATO_F"],
+        ["enemy", "CSAT"], ["flag", "Flag_NATO_F"], ["truck", "B_Truck_01_transport_F"],
         ["units", createHashMapFromArray [
             ["rifleman", "B_Soldier_F"], ["at_team", "B_soldier_AT_F"], ["aa_team", "B_soldier_AA_F"],
             ["mrap", "B_MRAP_01_hmg_F"], ["ifv", "B_APC_Wheeled_01_cannon_F"], ["mbt", "B_MBT_01_cannon_F"],
@@ -162,7 +176,7 @@ STCTI_FACTION_POOL = createHashMapFromArray [
         ]]
     ]],
     ["CSAT", createHashMapFromArray [
-        ["enemy", "NATO"], ["flag", "Flag_CSAT_F"],
+        ["enemy", "NATO"], ["flag", "Flag_CSAT_F"], ["truck", "O_Truck_03_transport_F"],
         ["units", createHashMapFromArray [
             ["rifleman", "O_Soldier_F"], ["at_team", "O_Soldier_AT_F"], ["aa_team", "O_Soldier_AA_F"],
             ["mrap", "O_MRAP_02_hmg_F"], ["ifv", "O_APC_Wheeled_02_rcws_v2_F"], ["mbt", "O_MBT_02_cannon_F"],
@@ -175,7 +189,7 @@ STCTI_FACTION_POOL = createHashMapFromArray [
         ]]
     ]],
     ["AAF", createHashMapFromArray [
-        ["enemy", "CSAT"], ["flag", "Flag_AAF_F"],
+        ["enemy", "CSAT"], ["flag", "Flag_AAF_F"], ["truck", "I_Truck_02_transport_F"],
         ["units", createHashMapFromArray [
             ["rifleman", "I_Soldier_F"], ["at_team", "I_Soldier_AT_F"], ["aa_team", "I_Soldier_AA_F"],
             ["mrap", "I_MRAP_03_hmg_F"], ["ifv", "I_APC_Wheeled_03_cannon_F"], ["mbt", "I_MBT_03_cannon_F"],

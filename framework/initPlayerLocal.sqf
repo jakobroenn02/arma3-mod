@@ -55,6 +55,18 @@ call STCTI_fnc_initHUD;
 // Stored-vehicle list: keep the local cache fresh for the garage menu.
 [STCTI_EV_GARAGE_CHANGED, { params ["_stored"]; STCTI_lastStored = _stored; }] call CBA_fnc_addEventHandler;
 
+// High Command (Phase 5): the map board opens the order dialog, and every HC_CHANGED push
+// re-syncs the vanilla HC bar (Ctrl+Space) to the current squad list.
+[{ !isNil "STCTI_hcBoard" && {!isNull STCTI_hcBoard} }, {
+    STCTI_hcBoard addAction ["<t color='#d8b4ff'>High Command</t>", { call STCTI_fnc_hcMenu; }, nil, 1.5, false, true, "", "true", 15];
+}] call CBA_fnc_waitUntilAndExecute;
+[STCTI_EV_HC_CHANGED, {
+    params ["_grps"];
+    STCTI_lastHC = _grps;
+    { player hcRemoveGroup _x; } forEach (hcAllGroups player);
+    { if (!isNull _x) then { player hcSetGroup [_x]; }; } forEach _grps;
+}] call CBA_fnc_addEventHandler;
+
 // Reinforce-garrison action: shown only while standing inside a sector the players hold.
 // Clients have no STCTI_state, but the sector markers are global and sized to the capture
 // radius, so "inside an owned sector" is derivable from marker colour + position alone.
