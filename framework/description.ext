@@ -156,6 +156,26 @@ class CfgSTCTISectors {
             grantsUnlock  = "";
         };
     };
+    class Malden {
+        class airfield {
+            type          = "military";
+            position[]    = {8050, 11900, 0};   // PLACEHOLDER — snap to the real apron (spec §5 export)
+            heading       = 0;
+            captureRadius = 300;
+            income[]      = {};
+            layout        = "military_small";
+            grantsUnlock  = "fixed_wing";
+        };
+        class fueldepot {
+            type          = "resource_fuel";
+            position[]    = {6600, 7300, 0};    // PLACEHOLDER — snap to the real depot (spec §5 export)
+            heading       = 0;
+            captureRadius = 200;
+            income[]      = {{"fuel", 40}};
+            layout        = "fuel_depot";
+            grantsUnlock  = "";
+        };
+    };
     class Tanoa {
         class north_mil {
             type          = "military";

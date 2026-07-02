@@ -9,6 +9,18 @@ if (_index < 0 || {_index >= count STCTI_START_BASES}) exitWith {};
 
 (STCTI_START_BASES select _index) params ["_label", "_spawnPos", "_spawnDir", "_arsenalPos", "_garagePos"];
 
+// Land-snap: base data may carry PLACEHOLDER coordinates (eyeballed, not editor-exported) —
+// never let the spawn point or a base station end up in the water.
+private _snap = {
+    params ["_p"];
+    if !(surfaceIsWater _p) exitWith { _p };
+    private _s = [_p, 0, 400, 5, 0, 0.5, 0] call BIS_fnc_findSafePos;
+    if (count _s >= 2) then { [_s select 0, _s select 1, 0] } else { _p }
+};
+_spawnPos   = [_spawnPos] call _snap;
+_arsenalPos = [_arsenalPos] call _snap;
+_garagePos  = [_garagePos] call _snap;
+
 if (isNil "STCTI_baseEstablished") then {
     STCTI_baseEstablished = true;
     publicVariable "STCTI_baseEstablished";   // clients skip zone-select (incl. JIP + restore)
