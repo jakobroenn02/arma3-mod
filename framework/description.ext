@@ -77,6 +77,13 @@ class CfgFunctions {
             class startProgression {};
             class updateArsenal {};
         };
+        class persistence {
+            file = "functions\persistence";
+            class saveCampaign {};
+            class loadCampaign {};
+            class wipeSave {};
+            class startPersistence {};
+        };
         class virtualization {
             file = "functions\virtualization";
             class observerPoints {};

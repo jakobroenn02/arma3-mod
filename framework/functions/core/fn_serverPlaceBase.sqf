@@ -11,6 +11,8 @@ if (_index < 0 || {_index >= count STCTI_START_BASES}) exitWith {};
 
 if (isNil "STCTI_baseEstablished") then {
     STCTI_baseEstablished = true;
+    publicVariable "STCTI_baseEstablished";   // clients skip zone-select (incl. JIP + restore)
+    STCTI_BASE_INDEX = _index;                // persisted so a restored campaign re-places here
 
     // Faction first, so every spawn from here on (garrisons, garage, flag) uses the pick.
     [_faction] call STCTI_fnc_applyFaction;
@@ -37,5 +39,7 @@ if (isNil "STCTI_baseEstablished") then {
     diag_log format ["[STCTI] Base established: %1 at %2", _label, _spawnPos];
 };
 
-// Deploy the requesting player at the exact spawn point.
-[STCTI_BASE_POS, STCTI_BASE_DIR] remoteExec ["STCTI_fnc_deployPlayer", _requester];
+// Deploy the requesting player at the exact spawn point (none when restoring a campaign).
+if (!isNull _requester) then {
+    [STCTI_BASE_POS, STCTI_BASE_DIR] remoteExec ["STCTI_fnc_deployPlayer", _requester];
+};

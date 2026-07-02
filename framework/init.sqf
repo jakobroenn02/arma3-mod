@@ -117,6 +117,13 @@ STCTI_AGGRO_PER_CAPTURE = 0.10;   // rise per player sector capture
 STCTI_AGGRO_DECAY       = 0.02;   // decay per director roll (quiet time)
 STCTI_OP_COOLDOWN       = 900;    // min seconds after an op before the next is even considered
 STCTI_OP_TIMEOUT        = 2700;   // spawned op older than this culminates (attacker withdraws)
+
+// --- Persistence (Phase 6, design §10) ------------------------------------------
+// The campaign spine autosaves to the server profile, keyed by world. Wipe for a fresh
+// campaign from the debug console: `call STCTI_fnc_wipeSave` (then restart the mission).
+STCTI_PERSISTENCE       = true;   // false = never save or restore
+STCTI_AUTOSAVE_INTERVAL = 300;    // seconds between autosaves (also saves on every capture)
+STCTI_SAVE_VERSION      = 1;      // bump when the save layout changes; mismatched saves are ignored
 // Escalation tiers: [minAggression, roster (typeId->count pairs)]. Tier 1 infantry + light
 // vehicles; tier 2 adds an armor element; tier 3 adds air. Same roster live & abstract.
 STCTI_ESCALATION = [
