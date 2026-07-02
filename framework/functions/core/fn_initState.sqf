@@ -7,7 +7,9 @@ STCTI_state = createHashMapFromArray [
         ["money", 5000], ["manpower", 50], ["fuel", 2000], ["ammo", 2000]
     ]],
     ["sectors", createHashMap],      // sectorId -> sector record
-    ["storedVehicles", []]           // player vehicles parked in the garage: [class, hitPoints, fuel]
+    ["storedVehicles", []],          // player vehicles parked in the garage: [class, hitPoints, fuel]
+    ["aggression", STCTI_AGGRO_START], // AI director pacing scalar 0..1 (Phase 4, design §8)
+    ["opCooldownUntil", 0]           // mission time before which the director may not launch again
 ];
 
 // Active abstract-combat engagements: sectorId -> engagement record (resolver §2).

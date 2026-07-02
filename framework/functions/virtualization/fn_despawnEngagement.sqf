@@ -17,9 +17,16 @@ _eng set ["spawned", false];
 _eng set ["paused", false];   // resolver resumes
 
 // The defender group was also the sector's standing garrison — it's gone now, so the sector
-// returns to virtual until re-observed.
+// returns to virtual until re-observed. CRITICAL: point defenderForce at the SAME hashmap as
+// eng.defender — beginEngagement aliases them so abstract casualties reach the sector record,
+// and the fresh recount above severed that alias. Without this, defenders killed in the live
+// phase are silently resurrected on the next spawnGarrison after the attacker routs.
 private _rec = (STCTI_state get "sectors") get (_eng get "sectorId");
-if (!isNil "_rec") then { _rec set ["garrisonGroup", grpNull]; _rec set ["spawned", false]; };
+if (!isNil "_rec") then {
+    _rec set ["defenderForce", _eng get "defender"];
+    _rec set ["garrisonGroup", grpNull];
+    _rec set ["spawned", false];
+};
 
 diag_log format ["[STCTI] Engagement at %1 DESPAWNED (observer left); resolver resumes (A=%2 D=%3).",
     _eng get "sectorId", _eng get "attacker", _eng get "defender"];

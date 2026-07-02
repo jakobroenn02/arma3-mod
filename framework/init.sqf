@@ -105,7 +105,25 @@ STCTI_OBS_MAX_R       = 5000;   // cap on observer radius (m)
 STCTI_OBS_LOOKAHEAD   = 1.5;    // aircraft/UAV observer point projects this × altitude downrange
 STCTI_OBS_HYSTERESIS  = 1000;   // once spawned, stay spawned until this much further out (anti-thrash)
 STCTI_PLAYER_GARRISON = 4;      // baseline virtual hold force (riflemen) a sector gains on player capture
-STCTI_ATTACK_ROSTER   = [["rifleman", 8]];  // attacker composition (typeId -> count); same for live & abstract
+// --- AI director (Phase 4) — design §8. Aggression is the single pacing scalar: it rises on
+// player captures (fn_startManagers), decays on quiet director rolls (fn_directorTick), and is
+// hard-capped for a passive-by-default feel. Each jittered roll: random 1 < aggression launches
+// ONE operation, then a cooldown. The task force is the highest escalation tier at/below the
+// current aggression — these are the dials the design doc says you'll tune the most.
+STCTI_AGGRO_START       = 0.20;
+STCTI_AGGRO_CAP         = 0.60;   // hard cap — the enemy stays passive by design
+STCTI_AGGRO_FLOOR       = 0.10;   // never fully dormant
+STCTI_AGGRO_PER_CAPTURE = 0.10;   // rise per player sector capture
+STCTI_AGGRO_DECAY       = 0.02;   // decay per director roll (quiet time)
+STCTI_OP_COOLDOWN       = 900;    // min seconds after an op before the next is even considered
+STCTI_OP_TIMEOUT        = 2700;   // spawned op older than this culminates (attacker withdraws)
+// Escalation tiers: [minAggression, roster (typeId->count pairs)]. Tier 1 infantry + light
+// vehicles; tier 2 adds an armor element; tier 3 adds air. Same roster live & abstract.
+STCTI_ESCALATION = [
+    [0.00, [["rifleman", 8],  ["at_team", 1], ["mrap", 1]]],
+    [0.35, [["rifleman", 10], ["at_team", 2], ["mrap", 1], ["ifv", 1]]],
+    [0.55, [["rifleman", 12], ["at_team", 2], ["aa_team", 1], ["mrap", 2], ["ifv", 1], ["mbt", 1], ["heli_atk", 1]]]
+];
 STCTI_GARRISON_SIZE   = 6;      // default enemy garrison (riflemen) seeded per sector at campaign start
 STCTI_VIRT_INTERVAL   = 5;      // seconds between garrison spawn/despawn (proximity-cache) checks
 STCTI_SPAWN_BUDGET    = 60;     // max framework-spawned AI units alive at once (the FPS ceiling).

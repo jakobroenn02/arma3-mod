@@ -44,8 +44,12 @@ switch (_routed) do {
         if (!isNil "_rec") then { _rec set ["defenderForce", _att]; };
     };
     case "attacker": {
-        // Assault fails; the defender holds. (Surviving attackers as a retreating virtual
-        // force is a Phase-2 follow-up — see spec §6 / handoff work.)
+        // Assault fails; the defender holds. Re-point defenderForce at the engagement's
+        // defender map — normally already aliased (beginEngagement), but this covers any
+        // caller that passed a non-aliased map, so the survivors are what respawns.
+        private _rec = (STCTI_state get "sectors") get _sectorId;
+        if (!isNil "_rec") then { _rec set ["defenderForce", _def]; };
+        // (Surviving attackers as a retreating virtual force is a Phase-2 follow-up — spec §6.)
     };
 };
 

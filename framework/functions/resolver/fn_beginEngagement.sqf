@@ -25,6 +25,8 @@ private _eng = createHashMapFromArray [
     ["accA", 0],
     ["accD", 0],
     ["ticks", 0],
+    ["startedAt", time],  // wall-clock anchor for the director's stalled-op timeout
+
     ["paused", false],
     ["done", false],
     ["spawned", false],   // live-units state (virtualization handoff)
