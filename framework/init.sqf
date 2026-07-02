@@ -44,10 +44,21 @@ STCTI_unlocks = [];
 // fn_applyFaction when the player picks a faction at campaign setup. Vehicles cost money + fuel
 // (design §resources). NOTE: catalog name must NOT collide with the garage flag object
 // STCTI_garage — SQF variable names are case-insensitive. Hence STCTI_garageCatalog.
+// Full combined-arms taxonomy (roadmap Phase 10): each row gates on its category unlock,
+// reachable by capturing the matching military site OR procuring the category (fn_serverProcure).
 STCTI_garageCatalogTemplate = [
-    ["mrap",    500,  "",           50],
-    ["ifv",     1500, "",           150],
-    ["jet_cas", 6000, "fixed_wing", 400]
+    ["mrap",           500,  "",              50],
+    ["truck",          400,  "cat_wheeled",   40],
+    ["apc",            1500, "cat_apc",       150],
+    ["ifv",            2200, "cat_apc",       180],
+    ["mbt",            4500, "cat_armor",     300],
+    ["mbt_heavy",      7000, "cat_armor_t2",  400],
+    ["heli_transport", 3000, "cat_rotary",    200],
+    ["heli_atk",       5500, "cat_rotary",    300],
+    ["jet_cas",        8000, "cat_fixedwing", 500],
+    ["uav_recon",      2500, "cat_uav",       120],
+    ["uav_armed",      6000, "cat_uav",       350],
+    ["boat",           900,  "cat_naval",     60]
 ];
 // How far from the garage flag a purchase may be placed. The placement ghost clamps to
 // this on the client; the server enforces it (with slack) in fn_serverPurchase.
@@ -132,6 +143,39 @@ STCTI_SUPPLY_REWARD  = [["ammo", 150], ["fuel", 150]];      // granted when the 
 STCTI_AIRSTRIKE_COST = [["money", 500], ["fuel", 100], ["ammo", 150]];
 STCTI_AIRSTRIKE_TIME = 180;   // seconds the CAS jet hunts over the target before leaving
 
+// --- Unlock taxonomy (Phase 9+ roadmap §1.2) --------------------------------------
+// Canonical unlock ids are "cat_<category>" (+ "_t<n>" tiers). Legacy ids from shipped map
+// data (and old saves) normalize through this alias map inside fn_grantUnlock/loadCampaign,
+// so grantsUnlock="fixed_wing" in CfgSTCTISectors keeps working.
+STCTI_UNLOCK_ALIASES = createHashMapFromArray [
+    ["fixed_wing", "cat_fixedwing"]
+];
+
+// Procurement (roadmap §1.3 / Phase 10): buy a hardware-category unlock with resources.
+// The table IS the policy — unique-effect unlocks (intel sites etc.) are deliberately absent,
+// so fn_serverProcure refuses them and capture stays the only path to those.
+STCTI_PROCURE_COST = createHashMapFromArray [
+    ["cat_wheeled",   [["money", 800],  ["ammo", 50]]],
+    ["cat_apc",       [["money", 1800], ["ammo", 100]]],
+    ["cat_armor",     [["money", 3500], ["ammo", 200]]],
+    ["cat_armor_t2",  [["money", 6000], ["ammo", 400]]],
+    ["cat_rotary",    [["money", 3000], ["ammo", 150]]],
+    ["cat_fixedwing", [["money", 8000], ["ammo", 500]]],
+    ["cat_uav",       [["money", 4000], ["ammo", 200]]],
+    ["cat_naval",     [["money", 1500], ["ammo", 50]]]
+];
+
+// --- Strategic mobility (Phase 9) --------------------------------------------------
+STCTI_TRAVEL_FUEL_COST       = 40;    // redeploy between owned travel nodes
+STCTI_TRAVEL_INSERT_FUEL     = 120;   // airborne insertion (any sector, arrives under canopy)
+STCTI_TRAVEL_COOLDOWN        = 120;   // per-player seconds between travels (keyed by UID)
+STCTI_TRAVEL_BLOCK_IN_COMBAT = true;  // refuse when enemies are near the requester
+STCTI_TRAVEL_COMBAT_RADIUS   = 300;   // "near" for the combat lockout
+
+// --- Logistics & sustainment (Phase 12 slice) --------------------------------------
+STCTI_INTEL_INTERVAL = 300;   // seconds between enemy-garrison scans (needs an owned military site)
+STCTI_SERVICE_COST   = [["money", 100], ["fuel", 30], ["ammo", 50]];   // full repair/refuel/rearm
+
 // --- Ambient civilians (Phase 8, design §6.2) — atmosphere only, no gameplay effect.
 STCTI_CIVILIANS      = true;
 STCTI_CIV_CAP        = 3;      // max wandering cars at once
@@ -170,48 +214,82 @@ STCTI_SPAWN_BUDGET    = 60;     // max framework-spawned AI units alive at once 
 // gives faction selection without any side-relation surgery.
 STCTI_FACTION_POOL = createHashMapFromArray [
     ["NATO", createHashMapFromArray [
-        ["enemy", "CSAT"], ["flag", "Flag_NATO_F"], ["truck", "B_Truck_01_transport_F"],
+        ["enemy", "CSAT"], ["flag", "Flag_NATO_F"],
         ["units", createHashMapFromArray [
             ["rifleman", "B_Soldier_F"], ["at_team", "B_soldier_AT_F"], ["aa_team", "B_soldier_AA_F"],
-            ["mrap", "B_MRAP_01_hmg_F"], ["ifv", "B_APC_Wheeled_01_cannon_F"], ["mbt", "B_MBT_01_cannon_F"],
-            ["uav_armed", "B_UAV_02_dynamicLoadout_F"], ["heli_atk", "B_Heli_Attack_01_dynamicLoadout_F"], ["jet_cas", "B_Plane_CAS_01_dynamicLoadout_F"]
+            ["mrap", "B_MRAP_01_hmg_F"], ["truck", "B_Truck_01_transport_F"],
+            ["apc", "B_APC_Tracked_01_rcws_F"], ["ifv", "B_APC_Wheeled_01_cannon_F"],
+            ["mbt", "B_MBT_01_cannon_F"], ["mbt_heavy", "B_MBT_01_TUSK_F"],
+            ["heli_transport", "B_Heli_Transport_01_F"], ["heli_atk", "B_Heli_Attack_01_dynamicLoadout_F"],
+            ["jet_cas", "B_Plane_CAS_01_dynamicLoadout_F"],
+            ["uav_recon", "B_UAV_01_F"], ["uav_armed", "B_UAV_02_dynamicLoadout_F"],
+            ["boat", "B_Boat_Armed_01_minigun_F"]
         ]],
         ["statics", createHashMapFromArray [["static_he", "B_HMG_01_high_F"], ["static_at", "B_static_AT_F"], ["static_aa", "B_static_AA_F"]]],
         // Arsenal tiers: unlockId ("" = from the start) -> unit classes whose config gear gets
-        // whitelisted into the base arsenal (fn_updateArsenal).
+        // whitelisted into the base arsenal (fn_updateArsenal). Keyed by the same category
+        // taxonomy the garage gates on (roadmap §1.2) — weapons ride the unlocks for free.
         ["arsenalUnits", createHashMapFromArray [
-            ["",           ["B_Soldier_F", "B_soldier_AR_F", "B_medic_F", "B_soldier_AT_F", "B_soldier_AA_F"]],
-            ["fixed_wing", ["B_Pilot_F", "B_Heli_Pilot_F"]]
+            ["",              ["B_Soldier_F", "B_soldier_AR_F", "B_medic_F", "B_soldier_AT_F", "B_soldier_AA_F"]],
+            ["cat_armor",     ["B_crew_F"]],
+            ["cat_rotary",    ["B_helicrew_F"]],
+            ["cat_fixedwing", ["B_Pilot_F", "B_Heli_Pilot_F"]]
         ]]
     ]],
     ["CSAT", createHashMapFromArray [
-        ["enemy", "NATO"], ["flag", "Flag_CSAT_F"], ["truck", "O_Truck_03_transport_F"],
+        ["enemy", "NATO"], ["flag", "Flag_CSAT_F"],
         ["units", createHashMapFromArray [
             ["rifleman", "O_Soldier_F"], ["at_team", "O_Soldier_AT_F"], ["aa_team", "O_Soldier_AA_F"],
-            ["mrap", "O_MRAP_02_hmg_F"], ["ifv", "O_APC_Wheeled_02_rcws_v2_F"], ["mbt", "O_MBT_02_cannon_F"],
-            ["uav_armed", "O_UAV_02_dynamicLoadout_F"], ["heli_atk", "O_Heli_Attack_02_dynamicLoadout_F"], ["jet_cas", "O_Plane_CAS_02_dynamicLoadout_F"]
+            ["mrap", "O_MRAP_02_hmg_F"], ["truck", "O_Truck_03_transport_F"],
+            ["apc", "O_APC_Tracked_02_cannon_F"], ["ifv", "O_APC_Wheeled_02_rcws_v2_F"],
+            ["mbt", "O_MBT_02_cannon_F"], ["mbt_heavy", "O_MBT_04_cannon_F"],
+            ["heli_transport", "O_Heli_Light_02_unarmed_F"], ["heli_atk", "O_Heli_Attack_02_dynamicLoadout_F"],
+            ["jet_cas", "O_Plane_CAS_02_dynamicLoadout_F"],
+            ["uav_recon", "O_UAV_01_F"], ["uav_armed", "O_UAV_02_dynamicLoadout_F"],
+            ["boat", "O_Boat_Armed_01_hmg_F"]
         ]],
         ["statics", createHashMapFromArray [["static_he", "O_HMG_01_high_F"], ["static_at", "O_static_AT_F"], ["static_aa", "O_static_AA_F"]]],
         ["arsenalUnits", createHashMapFromArray [
-            ["",           ["O_Soldier_F", "O_Soldier_AR_F", "O_medic_F", "O_Soldier_AT_F", "O_Soldier_AA_F"]],
-            ["fixed_wing", ["O_Pilot_F", "O_helipilot_F"]]
+            ["",              ["O_Soldier_F", "O_Soldier_AR_F", "O_medic_F", "O_Soldier_AT_F", "O_Soldier_AA_F"]],
+            ["cat_armor",     ["O_crew_F"]],
+            ["cat_rotary",    ["O_helicrew_F"]],
+            ["cat_fixedwing", ["O_Pilot_F", "O_helipilot_F"]]
         ]]
     ]],
     ["AAF", createHashMapFromArray [
-        ["enemy", "CSAT"], ["flag", "Flag_AAF_F"], ["truck", "I_Truck_02_transport_F"],
+        ["enemy", "CSAT"], ["flag", "Flag_AAF_F"],
         ["units", createHashMapFromArray [
             ["rifleman", "I_Soldier_F"], ["at_team", "I_Soldier_AT_F"], ["aa_team", "I_Soldier_AA_F"],
-            ["mrap", "I_MRAP_03_hmg_F"], ["ifv", "I_APC_Wheeled_03_cannon_F"], ["mbt", "I_MBT_03_cannon_F"],
-            // AAF has no attack helicopter — armed Hellcat is its closest native equivalent (v1
-            // native-factions-only rule, design §1).
-            ["uav_armed", "I_UAV_02_dynamicLoadout_F"], ["heli_atk", "I_Heli_light_03_dynamicLoadout_F"], ["jet_cas", "I_Plane_Fighter_03_dynamicLoadout_F"]
+            ["mrap", "I_MRAP_03_hmg_F"], ["truck", "I_Truck_02_transport_F"],
+            ["apc", "I_APC_tracked_03_cannon_F"], ["ifv", "I_APC_Wheeled_03_cannon_F"],
+            // AAF has no heavy MBT or attack helicopter — Kuma doubles as heavy, the armed
+            // Hellcat is the closest native equivalent (v1 native-factions-only rule, design §1).
+            ["mbt", "I_MBT_03_cannon_F"], ["mbt_heavy", "I_MBT_03_cannon_F"],
+            ["heli_transport", "I_Heli_Transport_02_F"], ["heli_atk", "I_Heli_light_03_dynamicLoadout_F"],
+            ["jet_cas", "I_Plane_Fighter_03_dynamicLoadout_F"],
+            ["uav_recon", "I_UAV_01_F"], ["uav_armed", "I_UAV_02_dynamicLoadout_F"],
+            ["boat", "I_Boat_Armed_01_minigun_F"]
         ]],
         ["statics", createHashMapFromArray [["static_he", "I_HMG_01_high_F"], ["static_at", "I_static_AT_F"], ["static_aa", "I_static_AA_F"]]],
         ["arsenalUnits", createHashMapFromArray [
-            ["",           ["I_soldier_F", "I_Soldier_AR_F", "I_medic_F", "I_Soldier_AT_F", "I_Soldier_AA_F"]],
-            ["fixed_wing", ["I_pilot_F", "I_helipilot_F"]]
+            ["",              ["I_soldier_F", "I_Soldier_AR_F", "I_medic_F", "I_Soldier_AT_F", "I_Soldier_AA_F"]],
+            ["cat_armor",     ["I_crew_F"]],
+            ["cat_rotary",    ["I_helicrew_F"]],
+            ["cat_fixedwing", ["I_pilot_F", "I_helipilot_F"]]
         ]]
     ]]
+];
+
+// DLC detection (roadmap Phase 11, Tier A/B split). First-party DLC hardware is usable by
+// everyone (engine store-nags unowned players), so it lives directly in the pools above.
+// CDLC (Tier B) requires ownership by every MP player and ships as opt-in extension packs —
+// deliberately NOT loaded in v1 (native-factions non-goal); the detection table is the hook.
+STCTI_DLC = createHashMapFromArray [
+    ["apex", isClass (configFile >> "CfgPatches" >> "A3_Characters_F_Tanoa")],
+    ["gm",   isClass (configFile >> "CfgPatches" >> "gm_core")],
+    ["vn",   isClass (configFile >> "CfgPatches" >> "vn_main")],
+    ["ws",   isClass (configFile >> "CfgPatches" >> "WS_core")],
+    ["spe",  isClass (configFile >> "CfgPatches" >> "SPE_core")]
 ];
 
 // Faction defaults (NATO vs CSAT) so everything works before the campaign-setup pick lands;

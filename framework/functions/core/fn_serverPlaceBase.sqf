@@ -54,6 +54,14 @@ if (isNil "STCTI_baseEstablished") then {
     STCTI_hcBoard setPosATL [_hcPos select 0, _hcPos select 1, 0];
     publicVariable "STCTI_hcBoard";
 
+    // Travel nodes (roadmap §1.1): node-ness is config-static, broadcast the id set ONCE.
+    // Clients derive valid destinations as (this set) ∩ (markers coloured ColorBLUFOR);
+    // ownership never needs a second broadcast. The HQ itself is always a node ("__hq").
+    STCTI_TRAVEL_NODE_IDS = [];
+    { if (_y getOrDefault ["travelNode", false]) then { STCTI_TRAVEL_NODE_IDS pushBack _x; }; }
+        forEach (STCTI_state get "sectors");
+    publicVariable "STCTI_TRAVEL_NODE_IDS";
+
     diag_log format ["[STCTI] Base established: %1 at %2", _label, _spawnPos];
 };
 

@@ -24,8 +24,10 @@ private _res = STCTI_state get "resources";
 { _res set [_x select 0, _x select 1]; } forEach _resPairs;
 [STCTI_EV_RESOURCES_CHANGED, [_res]] call CBA_fnc_globalEvent;
 
-// Unlocks re-gate the garage everywhere and re-tier the arsenal.
-STCTI_unlocks = +_unlocks;
+// Unlocks re-gate the garage everywhere and re-tier the arsenal. Old saves may carry legacy
+// ids — normalize through the same alias map fn_grantUnlock uses (then dedupe).
+private _norm = _unlocks apply { STCTI_UNLOCK_ALIASES getOrDefault [_x, _x] };
+STCTI_unlocks = _norm arrayIntersect _norm;
 [STCTI_EV_UNLOCKS_CHANGED, [STCTI_unlocks, ""]] call CBA_fnc_globalEvent;
 call STCTI_fnc_updateArsenal;
 

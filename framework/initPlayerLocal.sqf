@@ -50,7 +50,33 @@ call STCTI_fnc_initHUD;
         if (_owned isEqualTo []) exitWith { systemChat "STCTI: no empty owned vehicle near the garage."; };
         [_owned select 0] call STCTI_fnc_requestStore;
     }, nil, 1.4, false, true, "", "true", 15];
+    // Battlefield capture (Phase 10e): seize an intact NON-owned vehicle brought home.
+    STCTI_garage addAction ["<t color='#ffd27e'>Capture vehicle into stock</t>", {
+        private _near = (getPosATL STCTI_garage) nearEntities [["Car", "Tank", "Air", "Ship"], STCTI_GARAGE_RADIUS];
+        private _loot = _near select { !(_x getVariable ["STCTI_owned", false]) && {alive _x} && {crew _x isEqualTo []} };
+        if (_loot isEqualTo []) exitWith { systemChat "STCTI: no capturable vehicle near the garage."; };
+        [_loot select 0, clientOwner] remoteExec ["STCTI_fnc_serverCaptureVehicle", 2];
+    }, nil, 1.35, false, true, "", "true", 15];
+    // Service point (Phase 12): full repair/refuel/rearm of the nearest owned vehicle.
+    STCTI_garage addAction ["<t color='#9affa0'>Service nearby vehicle</t>", {
+        private _near = (getPosATL STCTI_garage) nearEntities [["Car", "Tank", "Air", "Ship"], STCTI_GARAGE_RADIUS];
+        private _owned = _near select { _x getVariable ["STCTI_owned", false] && {alive _x} };
+        if (_owned isEqualTo []) exitWith { systemChat "STCTI: no owned vehicle near the garage."; };
+        [_owned select 0, clientOwner] remoteExec ["STCTI_fnc_serverService", 2];
+    }, nil, 1.3, false, true, "", "true", 15];
+    // Procurement (Phase 10d): buy hardware-category unlocks with resources.
+    STCTI_garage addAction ["<t color='#ffd27e'>Procurement</t>", { call STCTI_fnc_procureMenu; }, nil, 1.25, false, true, "", "true", 15];
 }] call CBA_fnc_waitUntilAndExecute;
+
+// Strategic travel (Phase 9): available at the base or inside any owned travel node.
+STCTI_travelEligible = {
+    if (isNil "STCTI_TRAVEL_NODE_IDS") exitWith { false };
+    if (!isNil "STCTI_garage" && {!isNull STCTI_garage} && {player distance2D STCTI_garage < 75}) exitWith { true };
+    private _id = call STCTI_localOwnedSector;
+    _id isNotEqualTo "" && {_id in STCTI_TRAVEL_NODE_IDS}
+};
+player addAction ["<t color='#7ee8ff'>Strategic travel</t>", { call STCTI_fnc_travelMenu; },
+    nil, 1.25, false, true, "", "call STCTI_travelEligible"];
 
 // Stored-vehicle list: keep the local cache fresh for the garage menu.
 [STCTI_EV_GARAGE_CHANGED, { params ["_stored"]; STCTI_lastStored = _stored; }] call CBA_fnc_addEventHandler;

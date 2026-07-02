@@ -2,11 +2,11 @@
 
 A server-authoritative conventional-warfare CTI framework for Arma 3. See the design docs:
 
-- [strategic-cti-framework-design.md](strategic-cti-framework-design.md) — master design (all phases)
-- [phase-1-vertical-slice-tasks.md](phase-1-vertical-slice-tasks.md) — Phase 1 task breakdown
-- [abstract-combat-resolution-spec.md](abstract-combat-resolution-spec.md) — Phase 2 abstract resolver
+- [old-md/strategic-cti-framework-design.md](old-md/strategic-cti-framework-design.md) — master design (phases 1–8)
+- [phase-9-plus-roadmap.md](phase-9-plus-roadmap.md) — mobility, procurement, DLC & sustainment (phases 9+)
+- [old-md/abstract-combat-resolution-spec.md](old-md/abstract-combat-resolution-spec.md) — Phase 2 abstract resolver
 
-## Current state: all 8 phases implemented — Altis, Malden & Tanoa
+## Current state: phases 1–8 + the Phase 9+ roadmap — Altis, Malden & Tanoa
 
 The full loop is in: **capture → income → spend → defend → command**, persisted across restarts.
 
@@ -28,6 +28,22 @@ The full loop is in: **capture → income → spend → defend → command**, pe
   placeholders pending an editor export — base placement land-snaps, so it's playable).
 - **Phase 8 (ongoing polish)** — ambient civilian traffic, faction loadout on deploy,
   quality-of-life fixes. Balance tuning is the open long tail.
+- **Phase 9 — strategic mobility** — "Strategic travel" (at base or any owned town/military
+  node): redeploy to owned nodes for fuel on a cooldown (you + your AI squad), or pay more to
+  HALO-insert onto any node — in your current vehicle if you're sitting in one. Combat lockout;
+  server-validated.
+- **Phase 10 — procurement & full roster** — the garage spans the whole combined-arms
+  taxonomy (trucks, APCs, IFVs, MBTs incl. heavy, transport/attack helos, jets, recon/armed
+  UAVs, boats), each row gated on a hardware category. Categories unlock by **capturing** the
+  matching military site (armor depot, heliport, motor pool, UAV terminal, naval base…) or by
+  **procuring** them with money+ammo at the garage — but unique site effects (intel, income)
+  can never be bought. Arsenal tiers ride the same unlocks (crew kit with armor, pilot kit with
+  air). Intact enemy vehicles driven into the garage perimeter can be **captured into stock**.
+- **Phase 11 — DLC detection** — first-party DLC hardware sits in the pools (usable by all);
+  CDLC extension packs are detected (`STCTI_DLC`) but deliberately deferred to v2.
+- **Phase 12 — sustainment** — holding any military site grants periodic **intel** (enemy map
+  dots annotated with garrison strength); the garage services owned vehicles
+  (repair/refuel/rearm for resources).
 
 ### Vehicle garage (Antistasi-style)
 

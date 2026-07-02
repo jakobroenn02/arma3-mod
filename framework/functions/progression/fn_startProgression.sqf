@@ -9,13 +9,8 @@ if (isNil "STCTI_unlocks") then { STCTI_unlocks = []; };
     if !(_owner isEqualTo "player") exitWith {};
     private _rec = (STCTI_state get "sectors") get _id;
     if (isNil "_rec") exitWith {};
-    private _unlock = _rec getOrDefault ["grantsUnlock", ""];
-    if (_unlock isEqualTo "" || {_unlock in STCTI_unlocks}) exitWith {};
-
-    STCTI_unlocks pushBack _unlock;
-    [STCTI_EV_UNLOCKS_CHANGED, [STCTI_unlocks, _unlock]] call CBA_fnc_globalEvent;
-    call STCTI_fnc_updateArsenal;   // new unlock may add an arsenal tier
-    diag_log format ["[STCTI] Unlock granted: %1 (captured %2).", _unlock, _id];
+    // fn_grantUnlock is the single unlock authority (alias-normalized, idempotent, broadcasts).
+    [_rec getOrDefault ["grantsUnlock", ""]] call STCTI_fnc_grantUnlock;
 }] call CBA_fnc_addEventHandler;
 
 diag_log "[STCTI] Progression manager started.";

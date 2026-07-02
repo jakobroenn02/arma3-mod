@@ -8,8 +8,8 @@ if (!isServer) exitWith {};
 
 private _rec = (STCTI_state get "sectors") get _sectorId;
 if (isNil "_rec") exitWith { ["Unknown sector."] remoteExec ["hint", _requester]; };
-if !("fixed_wing" in STCTI_unlocks) exitWith {
-    ["Air support requires the fixed-wing unlock (capture the airfield)."] remoteExec ["hint", _requester];
+if !("cat_fixedwing" in STCTI_unlocks) exitWith {
+    ["Air support requires the fixed-wing unlock (capture the airfield or procure it)."] remoteExec ["hint", _requester];
 };
 if !(STCTI_AIRSTRIKE_COST call STCTI_fnc_spendMulti) exitWith {
     ["Not enough resources for air support."] remoteExec ["hint", _requester];

@@ -3,8 +3,12 @@
 // defenderForce is DERIVED from the layout (sector-layout-spec §2.4) — never hand-typed — so the
 // live spawn and the resolver can't disagree. Towns (empty layout) fall back to a rifleman baseline.
 // _heading / _layoutId default so older callers don't break. See §C1.
-params ["_id", "_type", "_pos", "_radius", ["_income", []], ["_heading", 0], ["_layoutId", "town_light"], ["_grantsUnlock", ""]];
+params ["_id", "_type", "_pos", "_radius", ["_income", []], ["_heading", 0], ["_layoutId", "town_light"], ["_grantsUnlock", ""], ["_travelNode", -1]];
 if (!isServer) exitWith {};
+
+// Travel-node default (roadmap §1.1): towns + military are nodes, bare resource depots are
+// not; -1 means "derive from type", 0/1 are explicit config overrides.
+if (_travelNode < 0) then { _travelNode = parseNumber (_type in ["town", "military"]); };
 
 private _comp = [_layoutId] call STCTI_fnc_layoutComposition;
 if (count _comp == 0) then { _comp = createHashMapFromArray [["rifleman", STCTI_GARRISON_SIZE]]; };
@@ -14,6 +18,7 @@ private _rec = createHashMapFromArray [
     ["owner", "enemy"], ["captureProgress", 0],
     ["income", createHashMapFromArray _income],
     ["heading", _heading], ["layout", _layoutId], ["grantsUnlock", _grantsUnlock],
+    ["travelNode", _travelNode > 0],
     ["defenderForce", _comp],
     ["hardening", []],   // player-built static slots [role, worldPos, dir] — see fn_serverPlaceStatic
     ["garrison", []], ["garrisonGroup", grpNull], ["spawned", false]

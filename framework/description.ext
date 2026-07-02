@@ -48,8 +48,21 @@ class CfgFunctions {
             class requestStore {};
             class serverRetrieve {};
             class requestRetrieve {};
+            class serverCaptureVehicle {};
+            class serverService {};
             class garageMenu {};
             class garagePlace {};
+        };
+        class travel {
+            file = "functions\travel";
+            class travelMenu {};
+            class requestTravel {};
+            class serverTravel {};
+            class doTravel {};
+        };
+        class logistics {
+            file = "functions\logistics";
+            class startIntel {};
         };
         class ai { file = "functions\ai"; class launchAttack {}; class directorTick {}; };
         class ui { file = "functions\ui"; class initHUD {}; class updateHUD {}; class showZoneSelect {}; };
@@ -76,6 +89,10 @@ class CfgFunctions {
             file = "functions\progression";
             class startProgression {};
             class updateArsenal {};
+            class grantUnlock {};
+            class requestProcure {};
+            class serverProcure {};
+            class procureMenu {};
         };
         class persistence {
             file = "functions\persistence";
@@ -159,6 +176,44 @@ class CfgSTCTISectors {
             layout        = "fuel_depot";
             grantsUnlock  = "";
         };
+        // Hardware-location unlocks (roadmap Phase 10a) — each military subtype gates one
+        // category. All positions PLACEHOLDER pending editor export.
+        class armor_depot {
+            type          = "military";
+            position[]    = {15300, 15800, 0};  // PLACEHOLDER
+            heading       = 0;
+            captureRadius = 250;
+            income[]      = {};
+            layout        = "military_small";
+            grantsUnlock  = "cat_armor";
+        };
+        class heliport {
+            type          = "military";
+            position[]    = {20900, 11900, 0};  // PLACEHOLDER
+            heading       = 0;
+            captureRadius = 250;
+            income[]      = {};
+            layout        = "military_small";
+            grantsUnlock  = "cat_rotary";
+        };
+        class motor_pool {
+            type          = "military";
+            position[]    = {12200, 14300, 0};  // PLACEHOLDER
+            heading       = 0;
+            captureRadius = 200;
+            income[]      = {};
+            layout        = "military_small";
+            grantsUnlock  = "cat_wheeled";
+        };
+        class uav_terminal {
+            type          = "military";
+            position[]    = {17500, 13200, 0};  // PLACEHOLDER
+            heading       = 0;
+            captureRadius = 200;
+            income[]      = {};
+            layout        = "military_small";
+            grantsUnlock  = "cat_uav";
+        };
     };
     class Malden {
         class airfield {
@@ -179,6 +234,24 @@ class CfgSTCTISectors {
             layout        = "fuel_depot";
             grantsUnlock  = "";
         };
+        class motor_pool {
+            type          = "military";
+            position[]    = {5500, 6800, 0};    // PLACEHOLDER
+            heading       = 0;
+            captureRadius = 200;
+            income[]      = {};
+            layout        = "military_small";
+            grantsUnlock  = "cat_wheeled";
+        };
+        class armor_depot {
+            type          = "military";
+            position[]    = {7200, 9600, 0};    // PLACEHOLDER
+            heading       = 0;
+            captureRadius = 250;
+            income[]      = {};
+            layout        = "military_small";
+            grantsUnlock  = "cat_armor";
+        };
     };
     class Tanoa {
         class north_mil {
@@ -198,6 +271,24 @@ class CfgSTCTISectors {
             income[]      = {{"fuel", 40}};
             layout        = "fuel_depot";
             grantsUnlock  = "";
+        };
+        class heliport {
+            type          = "military";
+            position[]    = {11200, 8900, 0};   // PLACEHOLDER
+            heading       = 0;
+            captureRadius = 250;
+            income[]      = {};
+            layout        = "military_small";
+            grantsUnlock  = "cat_rotary";
+        };
+        class naval_base {
+            type          = "military";
+            position[]    = {12900, 7500, 0};   // PLACEHOLDER — coastal (archipelago map)
+            heading       = 0;
+            captureRadius = 250;
+            income[]      = {};
+            layout        = "military_small";
+            grantsUnlock  = "cat_naval";
         };
     };
 };

@@ -16,7 +16,7 @@ if !(STCTI_SUPPLY_COST call STCTI_fnc_spendMulti) exitWith {
     ["Not enough resources for a supply run."] remoteExec ["hint", _requester];
 };
 
-private _cls   = (STCTI_FACTION_POOL get STCTI_PLAYER_FACTION) getOrDefault ["truck", "B_Truck_01_transport_F"];
+private _cls   = ((STCTI_FACTION_POOL get STCTI_PLAYER_FACTION) get "units") getOrDefault ["truck", "B_Truck_01_transport_F"];
 private _start = STCTI_BASE_POS getPos [30, random 360];
 private _veh   = createVehicle [_cls, _start, [], 0, "NONE"];
 private _crewG = createVehicleCrew _veh;

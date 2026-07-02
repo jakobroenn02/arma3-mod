@@ -27,7 +27,9 @@ private _root = missionConfigFile >> "CfgSTCTISectors" >> worldName;
         getArray  (_c >> "income"),
         getNumber (_c >> "heading"),
         getText   (_c >> "layout"),
-        getText   (_c >> "grantsUnlock")
+        getText   (_c >> "grantsUnlock"),
+        // travelNode: optional per-sector override; absent -> -1 -> derive from type (§1.1)
+        if (isNumber (_c >> "travelNode")) then { getNumber (_c >> "travelNode") } else { -1 }
     ] call STCTI_fnc_registerSector;
 } forEach (configProperties [_root, "isClass _x", true]);
 

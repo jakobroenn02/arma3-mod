@@ -19,15 +19,20 @@ if (_idx < 0) exitWith { ["That vehicle is not in the garage."] remoteExec ["hin
 if (!isNil "STCTI_garage" && {!isNull STCTI_garage} && {_pos distance2D getPosATL STCTI_garage > STCTI_GARAGE_RADIUS + 10}) exitWith {
     ["Placement is too far from the garage."] remoteExec ["hint", _requester];
 };
-if (surfaceIsWater _pos) exitWith {
-    ["Cannot place that in water."] remoteExec ["hint", _requester];
+if (surfaceIsWater _pos isNotEqualTo (_class isKindOf "Ship")) exitWith {
+    [["Cannot place that in water.", "Boats have to be placed on water."] select (_class isKindOf "Ship")]
+        remoteExec ["hint", _requester];
 };
 
 (_stored deleteAt _idx) params ["", "_hits", "_fuel"];
 
 private _veh = createVehicle [_class, _pos, [], 0, "NONE"];
 _veh setDir _dir;
-_veh setPosATL [_pos select 0, _pos select 1, 0];
+if (_class isKindOf "Ship") then {
+    _veh setPos [_pos select 0, _pos select 1, 0];   // AGL — sea surface
+} else {
+    _veh setPosATL [_pos select 0, _pos select 1, 0];
+};
 _veh setVariable ["STCTI_owned", true, true];
 // Restore the condition it was stored with (index-based, so unnamed hit points apply too).
 _veh setFuel _fuel;

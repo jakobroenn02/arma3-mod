@@ -17,8 +17,9 @@ if (_unlock != "" && {!(_unlock in STCTI_unlocks)}) exitWith {
 if (!isNil "STCTI_garage" && {!isNull STCTI_garage} && {_pos distance2D getPosATL STCTI_garage > STCTI_GARAGE_RADIUS + 10}) exitWith {
     ["Placement is too far from the garage."] remoteExec ["hint", _requester];
 };
-if (surfaceIsWater _pos) exitWith {
-    ["Cannot place that in water."] remoteExec ["hint", _requester];
+if (surfaceIsWater _pos isNotEqualTo (_class isKindOf "Ship")) exitWith {
+    [["Cannot place that in water.", "Boats have to be placed on water."] select (_class isKindOf "Ship")]
+        remoteExec ["hint", _requester];
 };
 if !([["money", _price], ["fuel", _fuelCost]] call STCTI_fnc_spendMulti) exitWith {
     [format ["Not enough resources (needs %1 money + %2 fuel).", _price, _fuelCost]] remoteExec ["hint", _requester];
@@ -26,7 +27,11 @@ if !([["money", _price], ["fuel", _fuelCost]] call STCTI_fnc_spendMulti) exitWit
 
 private _veh = createVehicle [_class, _pos, [], 0, "NONE"];
 _veh setDir _dir;
-_veh setPosATL [_pos select 0, _pos select 1, 0];
+if (_class isKindOf "Ship") then {
+    _veh setPos [_pos select 0, _pos select 1, 0];   // AGL — sea surface
+} else {
+    _veh setPosATL [_pos select 0, _pos select 1, 0];
+};
 // Owned marks it as the player's until it explodes: storable (fn_serverStore) and
 // retrievable (fn_serverRetrieve) from then on. Public so clients can find storables.
 _veh setVariable ["STCTI_owned", true, true];

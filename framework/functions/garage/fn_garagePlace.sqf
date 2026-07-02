@@ -38,9 +38,10 @@ STCTI_placeHintOk = parseText format [
     "<t align='center' size='1.1' shadow='1'>Placing %1 — <t color='#7ec8ff'>%2</t></t><br/>%3",
     _name, _cost, _controlsLine
 ];
+STCTI_placeIsShip = _class isKindOf "Ship";   // boats need water; everything else needs land
 STCTI_placeHintBad = parseText format [
-    "<t align='center' size='1.1' shadow='1' color='#ff6a6a'>Cannot place %1 here (water)</t><br/>%2",
-    _name, _controlsLine
+    "<t align='center' size='1.1' shadow='1' color='#ff6a6a'>Cannot place %1 here (%2)</t><br/>%3",
+    _name, ["water", "needs water"] select STCTI_placeIsShip, _controlsLine
 ];
 STCTI_placeBlocked = false;
 
@@ -88,11 +89,15 @@ STCTI_placePFH = [{
             _p = _gPos getPos [STCTI_GARAGE_RADIUS, _gPos getDir _p];
         };
     };
-    STCTI_placeGhost setPosATL [_p select 0, _p select 1, 0];
-    STCTI_placeGhost setVectorUp (surfaceNormal _p);
+    if (STCTI_placeIsShip) then {
+        STCTI_placeGhost setPos [_p select 0, _p select 1, 0];   // AGL — floats at the sea surface
+    } else {
+        STCTI_placeGhost setPosATL [_p select 0, _p select 1, 0];
+        STCTI_placeGhost setVectorUp (surfaceNormal _p);
+    };
     STCTI_placeGhost setDir STCTI_placeDir;
     // Valid-spot check; swap the hint only when the state flips (parseText is not free).
-    private _blocked = surfaceIsWater _p;
+    private _blocked = if (STCTI_placeIsShip) then { !surfaceIsWater _p } else { surfaceIsWater _p };
     if (_blocked isNotEqualTo STCTI_placeBlocked) then {
         STCTI_placeBlocked = _blocked;
         private _hint = uiNamespace getVariable ["STCTI_placeHint", controlNull];
