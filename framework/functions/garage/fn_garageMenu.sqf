@@ -82,7 +82,9 @@ STCTI_garageMenuPlace = {
     if (_kind isEqualTo 1) exitWith { systemChat "STCTI: that item is still locked — capture the sector that unlocks it."; };
     private _cls = _lb lbData _sel;
     _d closeDisplay 2;
-    [_cls, if (_kind isEqualTo 2) then { "retrieve" } else { "buy" }] call STCTI_fnc_garagePlace;
+    // Stored rows are listed first, so the row index IS the storedVehicles index — pass it
+    // through so retrieval takes THIS vehicle (matters when two of a class differ in condition).
+    [_cls, if (_kind isEqualTo 2) then { "retrieve" } else { "buy" }, _sel] call STCTI_fnc_garagePlace;
 };
 _lb ctrlAddEventHandler ["LBDblClick", { [ctrlParent (_this select 0)] call STCTI_garageMenuPlace; }];
 

@@ -132,6 +132,15 @@ STCTI_SUPPLY_REWARD  = [["ammo", 150], ["fuel", 150]];      // granted when the 
 STCTI_AIRSTRIKE_COST = [["money", 500], ["fuel", 100], ["ammo", 150]];
 STCTI_AIRSTRIKE_TIME = 180;   // seconds the CAS jet hunts over the target before leaving
 
+// --- Ambient civilians (Phase 8, design §6.2) — atmosphere only, no gameplay effect.
+STCTI_CIVILIANS      = true;
+STCTI_CIV_CAP        = 3;      // max wandering cars at once
+STCTI_CIV_INTERVAL   = 30;     // seconds between spawn/prune checks
+STCTI_CIV_SPAWNRANGE = 1200;   // a player this close to a town makes it eligible
+STCTI_CIV_DESPAWN    = 2000;   // no player within this of a car -> despawn
+STCTI_CIV_CARS = ["C_Offroad_01_F", "C_Hatchback_01_F", "C_SUV_01_F", "C_Van_01_transport_F"];
+STCTI_CIV_MEN  = ["C_man_1", "C_man_polo_1_F", "C_man_shorts_1_F"];
+
 // --- Persistence (Phase 6, design §10) ------------------------------------------
 // The campaign spine autosaves to the server profile, keyed by world. Wipe for a fresh
 // campaign from the debug console: `call STCTI_fnc_wipeSave` (then restart the mission).

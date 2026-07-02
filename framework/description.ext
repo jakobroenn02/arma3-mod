@@ -84,6 +84,10 @@ class CfgFunctions {
             class wipeSave {};
             class startPersistence {};
         };
+        class ambient {
+            file = "functions\ambient";
+            class startCivTraffic {};
+        };
         class hc {
             file = "functions\hc";
             class hcMenu {};

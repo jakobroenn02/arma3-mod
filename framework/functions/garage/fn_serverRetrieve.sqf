@@ -2,11 +2,18 @@
 // The authority side of "take vehicle out of the garage": the class must actually be in
 // STCTI_state.storedVehicles (clients only see a broadcast copy), and the spot passes the same
 // radius/water checks as a purchase. No cost — the vehicle was already paid for.
-params ["_class", "_pos", "_dir", "_requester"];
+params ["_class", "_pos", "_dir", ["_reqIdx", -1], ["_requester", 0]];
 if (!isServer) exitWith {};
 
 private _stored = STCTI_state get "storedVehicles";
-private _idx = _stored findIf { (_x select 0) isEqualTo _class };   // first of that class; entries are [cls, hits, fuel]
+// Prefer the exact entry the client clicked (validated: same class at that index — the list
+// may have changed since their menu opened); fall back to first-of-class.
+private _idx = -1;
+if (_reqIdx >= 0 && {(_stored param [_reqIdx, []]) param [0, ""] isEqualTo _class}) then {
+    _idx = _reqIdx;
+} else {
+    _idx = _stored findIf { (_x select 0) isEqualTo _class };   // entries are [cls, hits, fuel]
+};
 if (_idx < 0) exitWith { ["That vehicle is not in the garage."] remoteExec ["hint", _requester]; };
 
 if (!isNil "STCTI_garage" && {!isNull STCTI_garage} && {_pos distance2D getPosATL STCTI_garage > STCTI_GARAGE_RADIUS + 10}) exitWith {

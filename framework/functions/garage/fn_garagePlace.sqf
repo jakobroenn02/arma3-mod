@@ -7,8 +7,9 @@
 // cancels. Instructions are a static bar on display 46 for the whole placement — not a popup.
 if (!hasInterface) exitWith {};
 disableSerialization;
-params ["_class", ["_mode", "buy"]];   // "buy" = purchase on confirm, "retrieve" = take out of garage
+params ["_class", ["_mode", "buy"], ["_storedIdx", -1]];   // "buy" = purchase, "retrieve" = take out (idx = which stored entry)
 if (!isNil "STCTI_placeGhost") exitWith {};   // already placing something
+STCTI_placeStoredIdx = _storedIdx;
 
 // Label + cost for the instruction bar only — the server re-validates both on purchase (§E1).
 private _entry = STCTI_garageCatalog select { (_x select 1) isEqualTo _class };
@@ -69,7 +70,7 @@ STCTI_placeFinish = {
     STCTI_placeGhost = nil;
     if (_confirm) then {
         if (STCTI_placeMode isEqualTo "retrieve") then {
-            [_cls, _pos, _dir] call STCTI_fnc_requestRetrieve;
+            [_cls, _pos, _dir, STCTI_placeStoredIdx] call STCTI_fnc_requestRetrieve;
         } else {
             [_cls, _pos, _dir] call STCTI_fnc_requestPurchase;
         };
