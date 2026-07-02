@@ -172,6 +172,26 @@ STCTI_TRAVEL_COOLDOWN        = 120;   // per-player seconds between travels (key
 STCTI_TRAVEL_BLOCK_IN_COMBAT = true;  // refuse when enemies are near the requester
 STCTI_TRAVEL_COMBAT_RADIUS   = 300;   // "near" for the combat lockout
 
+// --- Front line (Warlords-style adjacency, conventional-war pacing) ----------------
+// Capture is only possible in sectors ADJACENT to friendly territory (k-nearest graph built
+// at init) or near the HQ. Out-of-reach enemy markers render faded. Airborne INSERT (Phase 9)
+// deliberately bypasses the front — paradrops behind the lines are conventional doctrine.
+STCTI_FRONTLINE       = true;   // false = capture anywhere (pre-front behaviour)
+STCTI_FRONT_K         = 3;      // neighbors per sector in the adjacency graph
+STCTI_FRONT_HQ_RADIUS = 3000;   // sectors this close to the base are always attackable
+
+// --- Respawn (conventional reinforcement) ------------------------------------------
+STCTI_RESPAWN_MANPOWER = 2;     // manpower debited per player respawn (see description.ext)
+
+// --- Enemy build-up (slow-war pressure) --------------------------------------------
+// Unobserved, unengaged enemy garrisons entrench over time: waiting has a price.
+STCTI_ENEMY_BUILDUP_INTERVAL = 300;  // seconds between growth ticks
+STCTI_ENEMY_GARRISON_CAP     = 14;   // total units an enemy garrison can grow to
+
+// --- Artillery fire mission (HC order) ---------------------------------------------
+STCTI_FIREMISSION_COST   = [["money", 300], ["ammo", 250]];
+STCTI_FIREMISSION_SHELLS = 8;   // 155mm impacts spread over ~35s
+
 // --- Logistics & sustainment (Phase 12 slice) --------------------------------------
 STCTI_INTEL_INTERVAL = 300;   // seconds between enemy-garrison scans (needs an owned military site)
 STCTI_SERVICE_COST   = [["money", 100], ["fuel", 30], ["ammo", 50]];   // full repair/refuel/rearm
@@ -233,6 +253,7 @@ STCTI_FACTION_POOL = createHashMapFromArray [
             ["",              ["B_Soldier_F", "B_soldier_AR_F", "B_medic_F", "B_soldier_AT_F", "B_soldier_AA_F"]],
             ["cat_armor",     ["B_crew_F"]],
             ["cat_rotary",    ["B_helicrew_F"]],
+            ["cat_uav",       ["B_soldier_UAV_F"]],
             ["cat_fixedwing", ["B_Pilot_F", "B_Heli_Pilot_F"]]
         ]]
     ]],
@@ -253,6 +274,7 @@ STCTI_FACTION_POOL = createHashMapFromArray [
             ["",              ["O_Soldier_F", "O_Soldier_AR_F", "O_medic_F", "O_Soldier_AT_F", "O_Soldier_AA_F"]],
             ["cat_armor",     ["O_crew_F"]],
             ["cat_rotary",    ["O_helicrew_F"]],
+            ["cat_uav",       ["O_soldier_UAV_F"]],
             ["cat_fixedwing", ["O_Pilot_F", "O_helipilot_F"]]
         ]]
     ]],
@@ -275,6 +297,7 @@ STCTI_FACTION_POOL = createHashMapFromArray [
             ["",              ["I_soldier_F", "I_Soldier_AR_F", "I_medic_F", "I_Soldier_AT_F", "I_Soldier_AA_F"]],
             ["cat_armor",     ["I_crew_F"]],
             ["cat_rotary",    ["I_helicrew_F"]],
+            ["cat_uav",       ["I_soldier_UAV_F"]],
             ["cat_fixedwing", ["I_pilot_F", "I_helipilot_F"]]
         ]]
     ]]

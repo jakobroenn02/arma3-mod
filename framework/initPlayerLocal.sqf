@@ -75,8 +75,6 @@ STCTI_travelEligible = {
     private _id = call STCTI_localOwnedSector;
     _id isNotEqualTo "" && {_id in STCTI_TRAVEL_NODE_IDS}
 };
-player addAction ["<t color='#7ee8ff'>Strategic travel</t>", { call STCTI_fnc_travelMenu; },
-    nil, 1.25, false, true, "", "call STCTI_travelEligible"];
 
 // Stored-vehicle list: keep the local cache fresh for the garage menu.
 [STCTI_EV_GARAGE_CHANGED, { params ["_stored"]; STCTI_lastStored = _stored; }] call CBA_fnc_addEventHandler;
@@ -105,39 +103,23 @@ STCTI_localOwnedSector = {
     } forEach (allMapMarkers select { _x select [0, 3] isEqualTo "mk_" && {!("_dot" in _x)} });
     _ret
 };
-player addAction [
-    format ["<t color='#9affa0'>Reinforce garrison (%1)</t>",
-        (STCTI_REINFORCE_COST apply { format ["%2 %1", _x select 0, _x select 1] }) joinString " + "],
-    {
-        private _id = call STCTI_localOwnedSector;
-        if (_id isEqualTo "") exitWith {};
-        [_id, clientOwner] remoteExec ["STCTI_fnc_serverReinforce", 2]; // 2 = server (validates + charges)
-    },
-    nil, 1.2, false, true, "", "(call STCTI_localOwnedSector) != ''"
-];
-
-// Build-static actions (one per type): placed where the player stands, facing their heading.
-{
-    _x params ["_role", "_label"];
-    private _cost = STCTI_STATIC_COST get _role;
-    player addAction [
-        format ["<t color='#9affa0'>Build %1 (%2)</t>", _label,
-            (_cost apply { format ["%2 %1", _x select 0, _x select 1] }) joinString " + "],
-        {
-            params ["", "", "", "_role"];
-            private _id = call STCTI_localOwnedSector;
-            if (_id isEqualTo "") exitWith {};
-            private _p = getPosATL player getPos [3, getDir player];
-            [_id, _role, [_p select 0, _p select 1, 0], getDir player, clientOwner]
-                remoteExec ["STCTI_fnc_serverPlaceStatic", 2]; // 2 = server (validates + charges)
-        },
-        _role, 1.1, false, true, "", "(call STCTI_localOwnedSector) != ''"
-    ];
-} forEach [
-    ["static_he", "HMG emplacement"],
-    ["static_at", "AT emplacement"],
-    ["static_aa", "AA emplacement"]
-];
+// Player-BODY actions (reinforce / build statics / travel) live in fn_setupPlayerActions and
+// are re-attached on every new body via CBA's "unit" player event (retroactive covers the
+// first). An actual respawn additionally re-applies the faction kit, debits manpower
+// (fn_serverRespawnCost) and re-syncs the vanilla HC bar to the new body.
+["unit", {
+    params ["_new", "_old"];
+    if (isNull _new) exitWith {};
+    call STCTI_fnc_setupPlayerActions;
+    if (!isNull _old) then {
+        if (STCTI_PLAYER_FACTION isNotEqualTo "NATO") then {
+            private _cls = (STCTI_FACTION get "player") getOrDefault ["rifleman", ""];
+            if (_cls isNotEqualTo "") then { _new setUnitLoadout (configFile >> "CfgVehicles" >> _cls); };
+        };
+        [clientOwner] remoteExec ["STCTI_fnc_serverRespawnCost", 2];
+        { if (!isNull _x) then { player hcSetGroup [_x]; }; } forEach STCTI_lastHC;
+    };
+}, true] call CBA_fnc_addPlayerEventHandler;
 
 // Unlock changes: refresh the local unlock set (garage conditions read it) and notify.
 [STCTI_EV_UNLOCKS_CHANGED, {

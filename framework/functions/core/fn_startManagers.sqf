@@ -9,6 +9,27 @@ if (!isServer) exitWith {};
 // Economy loop
 [{ call STCTI_fnc_economyTick; }, STCTI_ECONOMY_INTERVAL] call CBA_fnc_addPerFrameHandler;
 
+// Enemy build-up (slow-war pressure): unobserved, unengaged enemy garrisons entrench over
+// time up to a cap — the longer a front sits still, the harder the next push gets. Spawned
+// (watched) sectors don't grow: entrenchment happens where nobody is looking, which is also
+// what keeps the bookkeeping honest (no live-group mutation).
+[{
+    {
+        private _rec = _y;
+        if ((_rec get "owner") isEqualTo "enemy"
+            && {!(_rec get "spawned")}
+            && {!(_x in keys STCTI_engagements)}) then {
+            private _df = _rec getOrDefault ["defenderForce", createHashMap];
+            private _n = 0;
+            { _n = _n + _y; } forEach _df;
+            if (_n < STCTI_ENEMY_GARRISON_CAP) then {
+                _df set ["rifleman", (_df getOrDefault ["rifleman", 0]) + 1];
+                _rec set ["defenderForce", _df];
+            };
+        };
+    } forEach (STCTI_state get "sectors");
+}, STCTI_ENEMY_BUILDUP_INTERVAL] call CBA_fnc_addPerFrameHandler;
+
 // --- AI director inputs (Phase 4, design §8) ------------------------------------
 // Player captures raise aggression; the decay half lives in fn_directorTick's rolls.
 [STCTI_EV_SECTOR_CAPTURED, {

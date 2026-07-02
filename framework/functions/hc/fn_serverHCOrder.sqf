@@ -9,8 +9,9 @@ private _rec = (STCTI_state get "sectors") get _sectorId;
 if (isNil "_rec") exitWith { ["Unknown target sector."] remoteExec ["hint", _requester]; };
 
 switch (_order) do {
-    case "supply":    { [_sectorId, _requester] call STCTI_fnc_orderSupply; };
-    case "airstrike": { [_sectorId, _requester] call STCTI_fnc_orderAirStrike; };
+    case "supply":      { [_sectorId, _requester] call STCTI_fnc_orderSupply; };
+    case "airstrike":   { [_sectorId, _requester] call STCTI_fnc_orderAirStrike; };
+    case "firemission": { [_sectorId, _requester] call STCTI_fnc_orderFireMission; };
     default {
         if (isNull _grp || {({alive _x} count units _grp) == 0}) exitWith {
             ["That squad no longer exists."] remoteExec ["hint", _requester];

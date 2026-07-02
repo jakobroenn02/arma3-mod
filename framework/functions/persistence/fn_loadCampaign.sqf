@@ -52,6 +52,7 @@ STCTI_state set ["storedVehicles", +_stored];
 } forEach _sectors;
 
 STCTI_state set ["aggression", _aggro];
+call STCTI_fnc_updateFrontline;   // owners were set directly — re-render the front
 
 diag_log format ["[STCTI] Campaign RESTORED (%1 sectors, faction %2, aggression %3).",
     count _sectors, _faction, _aggro];

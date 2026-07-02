@@ -26,6 +26,18 @@ if (_owner isEqualTo "player") then {
 };
 
 [_id] call STCTI_fnc_updateSectorMarker;
+call STCTI_fnc_updateFrontline;   // ownership moved — the front moved with it
 
 // globalEvent so clients (economy HUD feedback, notifications) react everywhere.
 [STCTI_EV_SECTOR_CAPTURED, [_id, _owner]] call CBA_fnc_globalEvent;
+
+// Campaign victory: every sector in player hands. Re-verified after a short delay so the
+// final capture's feedback lands (and a same-tick counterflip cancels it).
+if (_owner isEqualTo "player" && {((values (STCTI_state get "sectors")) findIf { (_x get "owner") isNotEqualTo "player" }) < 0}) then {
+    [{
+        if (((values (STCTI_state get "sectors")) findIf { (_x get "owner") isNotEqualTo "player" }) < 0) then {
+            ["The island is ours — campaign complete!"] remoteExec ["systemChat", 0];
+            "EveryoneWon" call BIS_fnc_endMissionServer;
+        };
+    }, [], 8] call CBA_fnc_waitAndExecute;
+};

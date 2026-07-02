@@ -4,7 +4,11 @@ onLoadName = "STCTI — Vertical Slice";
 onLoadMission = "Capture. Earn. Spend. Defend.";
 overviewText = "Strategic CTI — Phase 1 vertical slice (Altis).";
 
-respawn = "NONE";          // slice: death = reload. Real respawn comes later.
+// Conventional reinforcement: respawn at the base ("respawn_west" marker placed by
+// fn_serverPlaceBase), debiting manpower (fn_serverRespawnCost via the CBA unit handler).
+respawn = "BASE";
+respawnDelay = 15;
+respawnOnStart = -1;
 disabledAI = 1;
 joinUnassigned = 0;
 
@@ -27,6 +31,7 @@ class CfgFunctions {
             class startManagers {};
             class serverPlaceBase {};
             class deployPlayer {};
+            class serverRespawnCost {};
         };
         class sectors {
             file = "functions\sectors";
@@ -36,6 +41,8 @@ class CfgFunctions {
             class updateSectorCapture {};
             class initSectors {};
             class isSectorObserved {};
+            class isSectorAttackable {};
+            class updateFrontline {};
             class serverReinforce {};
             class serverPlaceStatic {};
         };
@@ -65,7 +72,13 @@ class CfgFunctions {
             class startIntel {};
         };
         class ai { file = "functions\ai"; class launchAttack {}; class directorTick {}; };
-        class ui { file = "functions\ui"; class initHUD {}; class updateHUD {}; class showZoneSelect {}; };
+        class ui {
+            file = "functions\ui";
+            class initHUD {};
+            class updateHUD {};
+            class showZoneSelect {};
+            class setupPlayerActions {};
+        };
         class resolver {
             file = "functions\resolver";
             class unitAttr {};
@@ -115,6 +128,7 @@ class CfgFunctions {
             class orderDefend {};
             class orderSupply {};
             class orderAirStrike {};
+            class orderFireMission {};
         };
         class virtualization {
             file = "functions\virtualization";
@@ -214,6 +228,15 @@ class CfgSTCTISectors {
             layout        = "military_small";
             grantsUnlock  = "cat_uav";
         };
+        class ammodepot {
+            type          = "resource_ammo";
+            position[]    = {18500, 14200, 0};  // PLACEHOLDER
+            heading       = 0;
+            captureRadius = 200;
+            income[]      = {{"ammo", 40}};
+            layout        = "fuel_depot";
+            grantsUnlock  = "";
+        };
     };
     class Malden {
         class airfield {
@@ -252,6 +275,15 @@ class CfgSTCTISectors {
             layout        = "military_small";
             grantsUnlock  = "cat_armor";
         };
+        class ammodepot {
+            type          = "resource_ammo";
+            position[]    = {5100, 8900, 0};    // PLACEHOLDER
+            heading       = 0;
+            captureRadius = 200;
+            income[]      = {{"ammo", 40}};
+            layout        = "fuel_depot";
+            grantsUnlock  = "";
+        };
     };
     class Tanoa {
         class north_mil {
@@ -289,6 +321,15 @@ class CfgSTCTISectors {
             income[]      = {};
             layout        = "military_small";
             grantsUnlock  = "cat_naval";
+        };
+        class ammodepot {
+            type          = "resource_ammo";
+            position[]    = {4000, 10500, 0};   // PLACEHOLDER
+            heading       = 0;
+            captureRadius = 200;
+            income[]      = {{"ammo", 40}};
+            layout        = "fuel_depot";
+            grantsUnlock  = "";
         };
     };
 };

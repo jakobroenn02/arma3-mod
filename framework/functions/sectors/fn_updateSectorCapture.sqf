@@ -30,8 +30,10 @@ private _playersNear = ({ side _x == STCTI_SIDE_PLAYER && alive _x } count _near
 private _enemyNear   = ({ side _x == STCTI_SIDE_ENEMY  && alive _x } count _near) > 0;
 
 switch (true) do {
-    // Player present, no enemy: capture progresses.
+    // Player present, no enemy: capture progresses — but only along the front (a sector out
+    // of reach of friendly territory won't budge; its marker renders faded to signal that).
     case (_playersNear && !_enemyNear): {
+        if ((_rec get "owner") isNotEqualTo "player" && {!([_id] call STCTI_fnc_isSectorAttackable)}) exitWith {};
         private _p = (_progress + STCTI_CAPTURE_RATE) min 1;
         _rec set ["captureProgress", _p];
         if (_p >= 1 && {(_rec get "owner") != "player"}) then {

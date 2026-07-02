@@ -33,5 +33,29 @@ private _root = missionConfigFile >> "CfgSTCTISectors" >> worldName;
     ] call STCTI_fnc_registerSector;
 } forEach (configProperties [_root, "isClass _x", true]);
 
-diag_log format ["[STCTI] Sectors registered: %1 total (auto towns + authored strategic).",
-    count (keys (STCTI_state get "sectors"))];
+// 3) Front-line adjacency graph: k-nearest neighbors, symmetrized (if A borders B, B borders
+// A) so the front can be walked in both directions. Config-static — built once.
+private _all = values (STCTI_state get "sectors");
+{
+    private _rec = _x;
+    private _p   = _rec get "pos";
+    private _scored = [];
+    {
+        if ((_x get "id") isNotEqualTo (_rec get "id")) then {
+            _scored pushBack [_p distance2D (_x get "pos"), _x get "id"];
+        };
+    } forEach _all;
+    _scored sort true;
+    _rec set ["adjacent", (_scored select [0, STCTI_FRONT_K]) apply { _x select 1 }];
+} forEach _all;
+{
+    private _rec = _x;
+    {
+        private _other = (STCTI_state get "sectors") get _x;
+        private _adj   = _other get "adjacent";
+        if !((_rec get "id") in _adj) then { _adj pushBack (_rec get "id"); };
+    } forEach (_rec get "adjacent");
+} forEach _all;
+
+diag_log format ["[STCTI] Sectors registered: %1 total (auto towns + authored strategic), front graph k=%2.",
+    count (keys (STCTI_state get "sectors")), STCTI_FRONT_K];

@@ -62,6 +62,14 @@ if (isNil "STCTI_baseEstablished") then {
         forEach (STCTI_state get "sectors");
     publicVariable "STCTI_TRAVEL_NODE_IDS";
 
+    // Front line: sectors near the new HQ are always attackable (the beachhead), and the
+    // initial front renders now that the base exists. Engine respawn point for "BASE" mode.
+    { _y set ["hqLink", (_y get "pos") distance2D _spawnPos < STCTI_FRONT_HQ_RADIUS]; }
+        forEach (STCTI_state get "sectors");
+    call STCTI_fnc_updateFrontline;
+    private _rm = createMarker ["respawn_west", _spawnPos];
+    _rm setMarkerAlpha 0;
+
     diag_log format ["[STCTI] Base established: %1 at %2", _label, _spawnPos];
 };
 

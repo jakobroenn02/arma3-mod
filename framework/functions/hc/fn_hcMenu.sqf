@@ -86,7 +86,7 @@ STCTI_hcMenuOrder = {
     if (_selSe < 0) exitWith { systemChat "STCTI: pick a target sector."; };
     private _sectorId = _lbSe lbData _selSe;
     private _grp = grpNull;
-    if !(_order in ["supply", "airstrike"]) then {
+    if !(_order in ["supply", "airstrike", "firemission"]) then {
         private _lbSq = _d displayCtrl 9911;
         private _selSq = lbCurSel _lbSq;
         if (_selSq < 0) exitWith { systemChat "STCTI: pick a squad for that order."; };
@@ -95,21 +95,23 @@ STCTI_hcMenuOrder = {
     [_grp, _order, _sectorId, clientOwner] remoteExec ["STCTI_fnc_serverHCOrder", 2]; // 2 = server
 };
 
-// Order buttons: two rows of three.
-private _bw = (_panelW - 0.05*safezoneW) / 3;
+// Order buttons: squad orders on row 1, base assets + recruit on row 2 (width per row).
 private _bh = 0.05 * safezoneH;
 private _rows2 = [
     [["Patrol", "patrol"], ["Defend", "defend"], ["Attack", "attack"]],
-    [[format ["Supply run (%1$)", (STCTI_SUPPLY_COST param [0, ["money", 0]]) select 1], "supply"],
+    [[format ["Supply (%1$)", (STCTI_SUPPLY_COST param [0, ["money", 0]]) select 1], "supply"],
      ["Air strike", "airstrike"],
+     ["Fire mission", "firemission"],
      ["RECRUIT", "recruit"]]
 ];
 {
     private _rowY = _py + _panelH - (0.14 - 0.065 * _forEachIndex) * safezoneH;
+    private _n    = count _x;
+    private _bw   = (_panelW - (0.01 * (_n + 1)) * safezoneW) / _n;
     {
         _x params ["_label", "_order"];
         private _btn = _dlg ctrlCreate ["RscButton", -1];
-        _btn ctrlSetPosition [_px + 0.01*safezoneW + _forEachIndex * (_bw + 0.015*safezoneW), _rowY, _bw, _bh];
+        _btn ctrlSetPosition [_px + 0.01*safezoneW + _forEachIndex * (_bw + 0.01*safezoneW), _rowY, _bw, _bh];
         _btn ctrlSetText _label;
         _btn ctrlCommit 0;
         if (_order isEqualTo "recruit") then {
